@@ -5,6 +5,7 @@ import {useEffect, useMemo, useState} from "react"
 import {useParams} from "next/navigation"
 import {client} from "@/sanity/lib/client"
 import {urlFor} from "@/sanity/lib/image"
+import {PortableText} from "@portabletext/react"
 
 const query = `*[_type=="mietObjekt" && slug.current == $slug][0]{
   _id,
@@ -21,6 +22,7 @@ const query = `*[_type=="mietObjekt" && slug.current == $slug][0]{
   getriebe,
   ausstattung,
   beschreibung,
+  beschreibungRich,
   inWartung,
   wartungVon,
   wartungBis,
@@ -98,7 +100,6 @@ export default function MietDetail() {
       if (!slug) return
       setLoading(true)
 
-      // ✅ draft + published während Entwicklung
       const data = await client.fetch(query, {slug}, {perspective: "previewDrafts"})
 
       if (!cancelled) {
@@ -136,16 +137,13 @@ export default function MietDetail() {
         )
       : null
 
-  // ✅ Preiszeile oben
   const baseDay = typeof item?.preisProTag === "number" ? item.preisProTag : null
   const baseNight = typeof item?.preisProNacht === "number" ? item.preisProNacht : null
 
   let headlinePrice: {text: string; unit: string} | null = null
   if (pricingModel === "day" && typeof baseDay === "number") headlinePrice = {text: `${baseDay} €`, unit: "Tag"}
-  else if (pricingModel === "night" && typeof baseNight === "number")
-    headlinePrice = {text: `${baseNight} €`, unit: "Nacht"}
-  else if (pricingModel === "seasonal" && typeof saisonMin === "number")
-    headlinePrice = {text: `ab ${saisonMin} €`, unit: "Nacht"}
+  else if (pricingModel === "night" && typeof baseNight === "number") headlinePrice = {text: `${baseNight} €`, unit: "Nacht"}
+  else if (pricingModel === "seasonal" && typeof saisonMin === "number") headlinePrice = {text: `ab ${saisonMin} €`, unit: "Nacht"}
   else if (typeof baseDay === "number") headlinePrice = {text: `${baseDay} €`, unit: "Tag"}
   else if (typeof baseNight === "number") headlinePrice = {text: `${baseNight} €`, unit: "Nacht"}
   else if (typeof saisonMin === "number") headlinePrice = {text: `ab ${saisonMin} €`, unit: "Nacht"}
@@ -195,8 +193,24 @@ export default function MietDetail() {
               </div>
             ) : null}
 
-            {item.beschreibung ? (
-              <p className="mt-6 text-neutral-700 leading-relaxed break-words">{item.beschreibung}</p>
+            {/* ✅ Beschreibung: RichText bevorzugt, fallback auf altes Textfeld mit echten Zeilenumbrüchen */}
+            {Array.isArray(item?.beschreibungRich) && item.beschreibungRich.length > 0 ? (
+              <div className="mt-6 text-neutral-700 leading-relaxed break-words max-w-none">
+                <PortableText
+                  value={item.beschreibungRich}
+                  components={{
+                    block: {
+                      normal: ({children}) => <p className="my-3">{children}</p>,
+                    },
+                    marks: {
+                      strong: ({children}) => <strong className="font-semibold text-black">{children}</strong>,
+                      em: ({children}) => <em>{children}</em>,
+                    },
+                  }}
+                />
+              </div>
+            ) : item.beschreibung ? (
+              <p className="mt-6 text-neutral-700 leading-relaxed break-words whitespace-pre-line">{item.beschreibung}</p>
             ) : null}
 
             {Array.isArray(item.ausstattung) && item.ausstattung.length > 0 ? (
@@ -219,7 +233,6 @@ export default function MietDetail() {
                 <span className="text-sm font-normal text-neutral-500"> / {headlinePrice?.unit ?? "Tag"}</span>
               </div>
 
-              {/* ✅ Saisonpreise anzeigen, wenn seasonal */}
               {pricingModel === "seasonal" && saison.length ? (
                 <div className="mt-5 min-w-0">
                   <div className="text-sm font-medium text-neutral-900">
@@ -244,7 +257,6 @@ export default function MietDetail() {
                 </div>
               ) : null}
 
-              {/* ✅ Specials & Tarife */}
               {tarife.length ? (
                 <div className="mt-5 min-w-0">
                   <div className="text-sm font-medium text-neutral-900">Specials & Tarife</div>
