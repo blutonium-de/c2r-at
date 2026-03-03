@@ -14,7 +14,6 @@ function AnfrageInner() {
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // ✅ Extra Guard gegen Mehrfachsendung (auch bei sehr schnellem Klicken)
   const submittedOnceRef = useRef(false)
 
   const [form, setForm] = useState({
@@ -39,15 +38,9 @@ function AnfrageInner() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    // ✅ Wenn schon gesendet oder gerade am senden → NICHT nochmal
     if (loading || done || submittedOnceRef.current) return
 
     setError(null)
-
-    if (!rentalObjectId) {
-      setError("Miet-Objekt ID fehlt. Bitte starte die Anfrage über die Detailseite.")
-      return
-    }
 
     if (form.startDate && form.endDate && isBefore(form.endDate, form.startDate)) {
       setError("Das Bis-Datum darf nicht vor dem Von-Datum liegen.")
@@ -62,31 +55,36 @@ function AnfrageInner() {
     setLoading(true)
 
     try {
+      // ✅ Payload flexibel bauen (Mietobjekt optional)
+      const payload: any = {
+        name: form.name,
+        email: form.email,
+        phone: form.phone || undefined,
+        from: form.startDate,
+        to: form.endDate,
+        message: form.message || undefined,
+        consent: form.consent,
+      }
+
+      if (rentalObjectId) payload.rentalObjectId = rentalObjectId
+      if (miete) payload.rentalObjectTitle = miete
+
       const res = await fetch("/api/anfrage", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          rentalObjectId,
-          rentalObjectTitle: miete || undefined, // ✅ Titel mitsenden
-          name: form.name,
-          email: form.email,
-          phone: form.phone || undefined,
-          from: form.startDate,
-          to: form.endDate,
-          message: form.message || undefined,
-          consent: form.consent,
-        }),
+        body: JSON.stringify(payload),
       })
 
       const json = await res.json().catch(() => ({} as any))
 
       if (!res.ok) {
-        const msg = [json?.error, json?.details ? `Details: ${json.details}` : null].filter(Boolean).join(" — ")
+        const msg = [json?.error, json?.details ? `Details: ${json.details}` : null]
+          .filter(Boolean)
+          .join(" — ")
         setError(msg || "Unbekannter Fehler")
         return
       }
 
-      // ✅ Ab hier: 1x gesendet → UI sperren, Button weg, kein re-submit
       submittedOnceRef.current = true
       setDone(true)
     } catch (err: any) {
@@ -97,7 +95,6 @@ function AnfrageInner() {
   }
 
   function resetFormForNewRequest() {
-    // ✅ Neue Anfrage erlauben
     submittedOnceRef.current = false
     setDone(false)
     setError(null)
@@ -119,16 +116,24 @@ function AnfrageInner() {
     <main className="min-h-screen bg-white text-black">
       <div className="max-w-3xl mx-auto px-6 pt-10 pb-20">
         <div className="text-sm text-neutral-500">Anfrage</div>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">Jetzt unverbindlich anfragen</h1>
+        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">
+          Jetzt unverbindlich anfragen
+        </h1>
 
         {miete ? (
           <div className="mt-4">
-            <div className="text-xs uppercase tracking-wide text-neutral-500">Miet-Objekt</div>
-            <div className="mt-1 text-lg font-semibold text-neutral-900">{miete}</div>
+            <div className="text-xs uppercase tracking-wide text-neutral-500">
+              Miet-Objekt
+            </div>
+            <div className="mt-1 text-lg font-semibold text-neutral-900">
+              {miete}
+            </div>
             <div className="mt-3 h-px w-full bg-neutral-200" />
           </div>
         ) : (
-          <div className="mt-4 text-sm text-neutral-500">(Kein Miet-Objekt ausgewählt – du kannst trotzdem anfragen.)</div>
+          <div className="mt-4 text-sm text-neutral-500">
+            (Kein Miet-Objekt ausgewählt – du kannst trotzdem anfragen.)
+          </div>
         )}
 
         <form onSubmit={onSubmit} className="mt-8 rounded-3xl border border-neutral-200 p-6">
@@ -177,7 +182,10 @@ function AnfrageInner() {
                   onChange={(e) => {
                     const nextStart = e.target.value
                     setForm((p) => {
-                      const nextEnd = p.endDate && nextStart && isBefore(p.endDate, nextStart) ? nextStart : p.endDate
+                      const nextEnd =
+                        p.endDate && nextStart && isBefore(p.endDate, nextStart)
+                          ? nextStart
+                          : p.endDate
                       return {...p, startDate: nextStart, endDate: nextEnd}
                     })
                   }}
@@ -217,11 +225,15 @@ function AnfrageInner() {
               onChange={(e) => set("consent", e.target.checked)}
               disabled={disabled}
             />
-            <span>Ich stimme zu, dass meine Angaben zur Bearbeitung der Anfrage verwendet werden.</span>
+            <span>
+              Ich stimme zu, dass meine Angaben zur Bearbeitung der Anfrage verwendet werden.
+            </span>
           </label>
 
           {error ? (
-            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {error}
+            </div>
           ) : null}
 
           {done ? (
@@ -230,7 +242,6 @@ function AnfrageInner() {
             </div>
           ) : null}
 
-          {/* ✅ Button-Logik: nach Erfolg verschwindet Submit komplett */}
           {!done ? (
             <button
               type="submit"
@@ -257,7 +268,9 @@ function AnfrageInner() {
             </div>
           )}
 
-          <div className="mt-3 text-xs text-neutral-500">Abholung/Übergabe: Lambach (OÖ)</div>
+          <div className="mt-3 text-xs text-neutral-500">
+            Abholung/Übergabe: Lambach (OÖ)
+          </div>
         </form>
       </div>
     </main>
@@ -265,12 +278,13 @@ function AnfrageInner() {
 }
 
 export default function AnfragePage() {
-  // ✅ Fix für next build: useSearchParams muss in Suspense laufen
   return (
     <Suspense
       fallback={
         <main className="min-h-screen bg-white text-black">
-          <div className="max-w-3xl mx-auto px-6 pt-10 pb-20 text-neutral-600">Lade Anfrage…</div>
+          <div className="max-w-3xl mx-auto px-6 pt-10 pb-20 text-neutral-600">
+            Lade Anfrage…
+          </div>
         </main>
       }
     >
