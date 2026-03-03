@@ -87,12 +87,12 @@ export function CartProvider({children}: {children: React.ReactNode}) {
         setItems((prev) => prev.filter((p) => p.key !== key))
       },
 
-clear() {
-  setItems([])
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("c2r_cart") // <- nimm hier deinen echten Storage-Key
-  }
-},
+      clear() {
+        setItems([])
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem(LS_KEY)
+        }
+      },
 
       subtotal: prevSubtotal(items),
     }

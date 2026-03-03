@@ -13,14 +13,14 @@ type Props = {
 export default function CheckoutSuccessClient({sessionId, paypalFlag, paypalToken}: Props) {
   const cart = useCart()
 
-  // ✅ stabile clear()-Referenz (verhindert Probleme bei instabilen Hook-Referenzen)
+  // ✅ stabile clear()-Referenz
   const clearRef = useRef(cart.clear)
   useEffect(() => {
     clearRef.current = cart.clear
   }, [cart.clear])
 
   const didRun = useRef(false)
-  const [status, setStatus] = useState<"idle" | "working" | "done" | "error">("idle")
+  const [status, setStatus] = useState<"idle" | "working" | "done" | "error">(sessionId ? "working" : "idle")
 
   useEffect(() => {
     if (didRun.current) return
@@ -28,11 +28,15 @@ export default function CheckoutSuccessClient({sessionId, paypalFlag, paypalToke
 
     ;(async () => {
       try {
-        // ✅ STRIPE: wenn session_id vorhanden → direkt leeren
+        // ✅ STRIPE: wenn session_id vorhanden → sofort leeren (mit Safety-2nd pass)
         if (sessionId) {
+          setStatus("working")
           clearRef.current()
+          const t = setTimeout(() => {
+            clearRef.current()
+          }, 250)
           setStatus("done")
-          return
+          return () => clearTimeout(t)
         }
 
         // ✅ PAYPAL: wenn paypal=1 & token vorhanden → capture aufrufen
@@ -54,8 +58,12 @@ export default function CheckoutSuccessClient({sessionId, paypalFlag, paypalToke
           }
 
           clearRef.current()
+          const t = setTimeout(() => {
+            clearRef.current()
+          }, 250)
+
           setStatus("done")
-          return
+          return () => clearTimeout(t)
         }
 
         setStatus("done")
@@ -75,37 +83,42 @@ export default function CheckoutSuccessClient({sessionId, paypalFlag, paypalToke
 
         <p className="mt-6 text-neutral-600">Danke! Wir haben deine Bestellung erhalten.</p>
 
-        {status === "working" ? <p className="mt-3 text-sm text-neutral-600">Zahlung wird bestätigt…</p> : null}
+        {status === "working" ? <p className="mt-3 text-sm text-neutral-600">Bestellung wird finalisiert…</p> : null}
 
         {status === "error" ? (
-          <p className="mt-3 text-sm text-red-600">
-            Zahlung konnte nicht final bestätigt werden. Bitte kurz melden.
-          </p>
+          <p className="mt-3 text-sm text-red-600">Zahlung konnte nicht final bestätigt werden. Bitte kurz melden.</p>
         ) : null}
 
-        {sessionId ? (
-          <p className="mt-3 text-xs text-neutral-500 break-all">Stripe Session: {sessionId}</p>
-        ) : null}
+        {sessionId ? <p className="mt-3 text-xs text-neutral-500 break-all">Stripe Session: {sessionId}</p> : null}
+        {paypalToken ? <p className="mt-3 text-xs text-neutral-500 break-all">PayPal Order: {paypalToken}</p> : null}
 
-        {paypalToken ? (
-          <p className="mt-3 text-xs text-neutral-500 break-all">PayPal Order: {paypalToken}</p>
-        ) : null}
+        {/* Buttons erst anzeigen, wenn Cart sicher geleert ist */}
+        {status === "done" ? (
+          <div className="mt-10 flex flex-col sm:flex-row gap-3">
+            <Link
+              href="/shop"
+              className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-6 py-3 text-sm hover:border-black transition"
+            >
+              Weiter shoppen
+            </Link>
 
-        <div className="mt-10 flex flex-col sm:flex-row gap-3">
-          <Link
-            href="/shop"
-            className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-6 py-3 text-sm hover:border-black transition"
-          >
-            Weiter shoppen
-          </Link>
-
-          <Link
-            href="/cart"
-            className="inline-flex items-center justify-center rounded-full bg-black text-white px-6 py-3 text-sm hover:opacity-85 transition"
-          >
-            Zum Warenkorb
-          </Link>
-        </div>
+            <Link
+              href="/cart"
+              className="inline-flex items-center justify-center rounded-full bg-black text-white px-6 py-3 text-sm hover:opacity-85 transition"
+            >
+              Zum Warenkorb
+            </Link>
+          </div>
+        ) : (
+          <div className="mt-10 flex flex-col sm:flex-row gap-3">
+            <Link
+              href="/shop"
+              className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-6 py-3 text-sm hover:border-black transition"
+            >
+              Weiter shoppen
+            </Link>
+          </div>
+        )}
       </div>
     </main>
   )
