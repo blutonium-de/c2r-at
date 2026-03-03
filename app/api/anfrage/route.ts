@@ -2,7 +2,7 @@ import {NextResponse} from "next/server"
 import {writeClient} from "@/sanity/lib/writeClient"
 
 type Body = {
-  rentalObjectId: string
+  rentalObjectId?: string
   rentalObjectTitle?: string
   name: string
   email: string
@@ -48,7 +48,10 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Body
 
-    if (!body?.rentalObjectId) return NextResponse.json({error: "Miet-Objekt ID fehlt."}, {status: 400})
+    // ✅ Mietobjekt ist OPTIONAL (allgemeine Anfrage möglich)
+    const rentalObjectId = norm(body?.rentalObjectId) || ""
+    const safeTitle = norm(body?.rentalObjectTitle)
+
     if (!norm(body?.name)) return NextResponse.json({error: "Name fehlt."}, {status: 400})
     if (!isEmail(body?.email)) return NextResponse.json({error: "E-Mail ungültig."}, {status: 400})
     if (!isIsoDate(body?.from) || !isIsoDate(body?.to)) return NextResponse.json({error: "Datum ungültig."}, {status: 400})
@@ -60,18 +63,17 @@ export async function POST(req: Request) {
     }
 
     const ip = getClientIp(req)
-    const safeTitle = norm(body.rentalObjectTitle)
 
     // ✅ Idempotency Window: 2 Minuten Bucket
     // Wenn jemand exakt dieselbe Anfrage innerhalb dieses Fensters schickt → wird abgefangen.
     const bucketMs = 2 * 60 * 1000
     const bucket = Math.floor(Date.now() / bucketMs)
 
-    // ✅ Fingerprint (gleiches Objekt + Daten + Zeitraum + Kontakt + Nachricht)
-    // (message absichtlich drin, damit echte neue Anfrage mit anderer Nachricht durchgeht)
+    // ✅ Fingerprint
+    // Mietobjekt optional → leere Strings sind ok.
     const fingerprint = [
-      "v1",
-      body.rentalObjectId,
+      "v2",
+      rentalObjectId,
       safeTitle,
       norm(body.name).toLowerCase(),
       norm(body.email).toLowerCase(),
@@ -80,13 +82,12 @@ export async function POST(req: Request) {
       body.to,
       norm(body.message),
       String(bucket),
-      ip, // IP in den Fingerprint → schützt besser gegen Spam
+      ip,
     ].join("|")
 
     const lockId = `rentalInquiryLock.${fnv1a32(fingerprint)}`
 
     // ✅ Lock-Dokument: wird nur einmal erstellt (unique _id)
-    // Wenn das schon existiert => Duplikat => keine Mail, kein zweites Sanity-Dokument.
     try {
       await writeClient.createIfNotExists({
         _id: lockId,
@@ -95,17 +96,14 @@ export async function POST(req: Request) {
         ip,
       } as any)
     } catch (e: any) {
-      // Falls Sanity hier zickt → lieber safe abbrechen als doppelt senden
       return NextResponse.json({error: "Duplikat oder Sperre aktiv. Bitte kurz warten und erneut versuchen."}, {status: 429})
     }
 
     // ✅ Rate Limit zusätzlich: max 3 Anfragen pro IP pro 5 Minuten (soft)
-    // Wir speichern pro Anfrage ein kleines Log-Doc. (optional, aber hilfreich)
     const rateBucketMs = 5 * 60 * 1000
     const rateBucket = Math.floor(Date.now() / rateBucketMs)
     const rateId = `rentalInquiryRate.${ip}.${rateBucket}.${Date.now()}`
 
-    // Wir legen es best effort an – wenn das failt, blockieren wir nicht.
     try {
       await writeClient.create({
         _id: rateId,
@@ -117,9 +115,8 @@ export async function POST(req: Request) {
       // ignore
     }
 
-    const doc = {
+    const doc: any = {
       _type: "rentalInquiry",
-      rentalObject: {_type: "reference", _ref: body.rentalObjectId},
       rentalObjectTitle: safeTitle || undefined,
       name: norm(body.name),
       email: norm(body.email),
@@ -134,6 +131,11 @@ export async function POST(req: Request) {
         ip,
         lockId,
       },
+    }
+
+    // ✅ Reference nur setzen, wenn ID vorhanden
+    if (rentalObjectId) {
+      doc.rentalObject = {_type: "reference", _ref: rentalObjectId}
     }
 
     const created = await writeClient.create(doc)
@@ -152,8 +154,8 @@ export async function POST(req: Request) {
     const textLines = [
       `Neue Miet-Anfrage`,
       ``,
-      safeTitle ? `Mietobjekt: ${safeTitle}` : null,
-      `Mietobjekt-ID: ${body.rentalObjectId}`,
+      safeTitle ? `Mietobjekt: ${safeTitle}` : `Mietobjekt: (keines ausgewählt)`,
+      rentalObjectId ? `Mietobjekt-ID: ${rentalObjectId}` : `Mietobjekt-ID: (keine)`,
       `Anfrage-ID: ${created._id}`,
       `Lock: ${lockId}`,
       `IP: ${ip}`,
@@ -171,7 +173,9 @@ export async function POST(req: Request) {
       from: mailFrom,
       to: mailTo,
       replyTo: norm(body.email),
-      subject: safeTitle ? `Neue Miet-Anfrage: ${safeTitle}` : `Neue Miet-Anfrage: ${norm(body.name)}`,
+      subject: safeTitle
+        ? `Neue Miet-Anfrage: ${safeTitle}`
+        : `Neue Anfrage: ${norm(body.name)}`,
       text: textLines.join("\n"),
     })
 
