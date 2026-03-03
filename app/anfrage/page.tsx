@@ -55,7 +55,6 @@ function AnfrageInner() {
     setLoading(true)
 
     try {
-      // ✅ Payload flexibel bauen (Mietobjekt optional)
       const payload: any = {
         name: form.name,
         email: form.email,
@@ -199,7 +198,16 @@ function AnfrageInner() {
                   className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:border-black disabled:bg-neutral-50"
                   value={form.endDate}
                   min={form.startDate || undefined}
-                  onChange={(e) => set("endDate", e.target.value)}
+                  onChange={(e) => {
+                    const nextEnd = e.target.value
+                    setForm((p) => {
+                      // ✅ iOS Safari Fix → hart korrigieren
+                      if (p.startDate && nextEnd && nextEnd < p.startDate) {
+                        return {...p, endDate: p.startDate}
+                      }
+                      return {...p, endDate: nextEnd}
+                    })
+                  }}
                   disabled={disabled}
                 />
               </label>
