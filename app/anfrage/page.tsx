@@ -170,12 +170,13 @@ function AnfrageInner() {
               />
             </label>
 
-            <div className="grid grid-cols-2 gap-4">
-              <label className="block">
+            {/* ✅ Mobile Fix: auf iPhone untereinander, ab sm nebeneinander + min-w-0 gegen Überlappung */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
+              <label className="block min-w-0">
                 <div className="text-sm text-neutral-600">Von</div>
                 <input
                   type="date"
-                  className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:border-black disabled:bg-neutral-50"
+                  className="mt-1 w-full min-w-0 rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:border-black disabled:bg-neutral-50"
                   value={form.startDate}
                   disabled={disabled}
                   onChange={(e) => {
@@ -191,11 +192,11 @@ function AnfrageInner() {
                 />
               </label>
 
-              <label className="block">
+              <label className="block min-w-0">
                 <div className="text-sm text-neutral-600">Bis</div>
                 <input
                   type="date"
-                  className="mt-1 w-full rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:border-black disabled:bg-neutral-50"
+                  className="mt-1 w-full min-w-0 rounded-xl border border-neutral-200 px-4 py-3 outline-none focus:border-black disabled:bg-neutral-50"
                   value={form.endDate}
                   min={form.startDate || undefined}
                   onChange={(e) => {
