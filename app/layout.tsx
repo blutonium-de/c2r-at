@@ -10,6 +10,11 @@ export const metadata = {
     "Adventure Vans, Luxus-Wohnwagen, Transporter & Spezialfahrzeuge mieten. Autoparts & Camper-Zubehör neu/gebraucht. Bahnhofstraße 27, 4650 Lambach (OÖ).",
 }
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+}
+
 const nav = [
   {href: "/miete", label: "Miete"},
   {href: "/shop", label: "Shop"},
