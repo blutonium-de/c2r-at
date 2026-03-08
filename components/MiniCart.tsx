@@ -17,10 +17,14 @@ export default function MiniCart() {
   const topItems = useMemo(() => (Array.isArray(items) ? items.slice(0, 5) : []), [items])
 
   return (
-    <div className="relative shrink-0" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <Link
-        href="/cart"
+    <div
+      className="relative shrink-0"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
         aria-label="Warenkorb"
+        onClick={() => setOpen(!open)}
         className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-2 hover:bg-neutral-50 transition"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-black">
@@ -37,11 +41,11 @@ export default function MiniCart() {
         ) : (
           <span className="text-xs text-neutral-600">0</span>
         )}
-      </Link>
+      </button>
 
       {open ? (
-        <div className="absolute right-0 top-full pt-2 z-50">
-          <div className="w-[360px] rounded-2xl border border-neutral-200 bg-white shadow-xl overflow-hidden">
+        <div className="fixed md:absolute left-4 right-4 md:left-auto md:right-0 top-20 md:top-full pt-2 z-50">
+          <div className="w-full md:w-[360px] rounded-2xl border border-neutral-200 bg-white shadow-xl overflow-hidden">
             <div className="p-4 border-b border-neutral-100">
               <div className="text-sm font-semibold">Warenkorb</div>
               <div className="text-xs text-neutral-500">{count} Artikel</div>
@@ -107,7 +111,9 @@ export default function MiniCart() {
                     </Link>
                   </div>
 
-                  <div className="mt-2 text-[11px] text-neutral-500">Versand wird im Checkout berechnet (AT/EU).</div>
+                  <div className="mt-2 text-[11px] text-neutral-500">
+                    Versand wird im Checkout berechnet (AT/EU).
+                  </div>
                 </div>
               </>
             )}
