@@ -25,14 +25,14 @@ export default function ProductGallery({title, images}: Props) {
   }
 
   return (
-    <div className="min-w-0 max-w-full overflow-hidden">
+    <div className="w-full min-w-0 max-w-full overflow-hidden">
       <div className="relative aspect-[16/10] w-full min-w-0 max-w-full rounded-3xl overflow-hidden bg-neutral-100 border border-neutral-200">
         {hero ? (
           <Image
             src={urlFor(hero).width(1800).height(1200).url()}
             alt={title ?? "Produkt"}
             fill
-            className="object-cover"
+            className="object-contain"
             unoptimized
             priority
           />
@@ -66,8 +66,8 @@ export default function ProductGallery({title, images}: Props) {
       </div>
 
       {hasMany ? (
-        <div className="mt-4 max-w-full overflow-x-auto pb-1">
-          <div className="flex gap-3 min-w-max">
+        <div className="mt-4 w-full max-w-full overflow-x-auto overflow-y-hidden pb-1">
+          <div className="flex w-max gap-3 pr-1">
             {imgs.slice(0, 12).map((img: any, i: number) => {
               const active = i === idx
               return (

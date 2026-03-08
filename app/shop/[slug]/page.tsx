@@ -44,11 +44,11 @@ export default async function ProductDetailPage({
 
   if (!slug) {
     return (
-      <main className="min-h-screen bg-white text-black">
-        <div className="max-w-6xl mx-auto px-6 pt-14 pb-20">
-          <div className="rounded-3xl border border-neutral-200 p-6">
+      <main className="min-h-screen bg-white text-black overflow-x-hidden">
+        <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 min-w-0">
+          <div className="rounded-3xl border border-neutral-200 p-6 min-w-0">
             <div className="text-lg font-semibold">Seite nicht gefunden</div>
-            <div className="mt-2 text-sm text-neutral-600">
+            <div className="mt-2 text-sm text-neutral-600 break-words">
               Slug fehlt. Öffne die Seite bitte unter <b>/shop/DEIN-SLUG</b>.
             </div>
             <div className="mt-4">
@@ -124,68 +124,68 @@ export default async function ProductDetailPage({
 
   return (
     <main className="min-h-screen bg-white text-black overflow-x-hidden">
-      <div className="max-w-6xl mx-auto px-6 pt-10 pb-20">
-        <div className="text-sm text-neutral-500">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-20 min-w-0 overflow-x-hidden">
+        <div className="text-sm text-neutral-500 break-words min-w-0">
           <Link href="/shop" className="hover:underline">
             Shop
           </Link>{" "}
-          <span className="text-neutral-300">/</span> {data.title}
+          <span className="text-neutral-300">/</span>{" "}
+          <span className="break-words">{data.title}</span>
         </div>
 
-        {/* MOBILE FIX */}
-        <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight leading-[1.1] break-words">
+        <div className="mt-3 flex flex-col gap-3 min-w-0">
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight leading-[1.08] break-words min-w-0">
             {data.title}
           </h1>
 
           {condLabel ? (
-            <div className="self-start text-xs px-3 py-1 rounded-full border border-neutral-200">
+            <div className="self-start shrink-0 text-xs px-3 py-1 rounded-full border border-neutral-200">
               {condLabel}
             </div>
           ) : null}
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-2 min-w-0">
           {stockText ? (
-            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs">
-              <span className={`h-2 w-2 rounded-full ${inStock === false ? "bg-red-500" : "bg-green-500"}`} />
-              <span className="text-neutral-700">{stockText}</span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs max-w-full">
+              <span className={`h-2 w-2 rounded-full shrink-0 ${inStock === false ? "bg-red-500" : "bg-green-500"}`} />
+              <span className="text-neutral-700 break-words">{stockText}</span>
             </div>
           ) : null}
 
           {delivery ? (
-            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs">
-              <span className="text-neutral-700">⏱</span>
-              <span className="text-neutral-700">{delivery}</span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs max-w-full">
+              <span className="text-neutral-700 shrink-0">⏱</span>
+              <span className="text-neutral-700 break-words">{delivery}</span>
             </div>
           ) : null}
         </div>
 
-        <div className="mt-8 grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 min-w-0">
+          <div className="lg:col-span-2 min-w-0 overflow-x-hidden">
             <ProductGallery title={data.title ?? "Produkt"} images={images} />
 
             {data?.description ? (
-              <p className="mt-6 text-neutral-700 leading-relaxed whitespace-pre-wrap">
+              <div className="mt-6 text-neutral-700 leading-relaxed whitespace-pre-wrap break-words min-w-0">
                 {renderTextWithBold(String(data.description))}
-              </p>
+              </div>
             ) : null}
           </div>
 
-          <aside className="lg:col-span-1">
-            <div className="rounded-3xl border border-neutral-200 p-6 sticky top-6">
+          <aside className="lg:col-span-1 min-w-0">
+            <div className="rounded-3xl border border-neutral-200 p-6 sticky top-6 min-w-0 overflow-hidden">
               <div className="text-sm text-neutral-500">Preis</div>
-              <div className="mt-1 text-2xl font-semibold">
+              <div className="mt-1 text-2xl font-semibold break-words">
                 {typeof data?.price === "number" ? `${money(data.price)} €` : "Preis auf Anfrage"}
               </div>
               <div className="text-xs text-neutral-500 mt-1">inkl. MwSt.</div>
 
-              {data?.sku ? <div className="mt-3 text-xs text-neutral-500">SKU: {data.sku}</div> : null}
+              {data?.sku ? <div className="mt-3 text-xs text-neutral-500 break-words">SKU: {data.sku}</div> : null}
 
               {typeof minPrice === "number" ? (
-                <div className="mt-3 text-xs text-neutral-600 flex items-start gap-2">
-                  <span className="mt-[1px]">📦</span>
-                  <div>
+                <div className="mt-3 text-xs text-neutral-600 flex items-start gap-2 min-w-0">
+                  <span className="mt-[1px] shrink-0">📦</span>
+                  <div className="break-words min-w-0">
                     Versand ab <span className="font-medium">{money(minPrice)} €</span>
                     {typeof minFreeFrom === "number" ? (
                       <>
@@ -196,13 +196,13 @@ export default async function ProductDetailPage({
                   </div>
                 </div>
               ) : (
-                <div className="mt-3 text-xs text-neutral-600 flex items-start gap-2">
-                  <span className="mt-[1px]">📦</span>
-                  <div>Versand & Abholung nach Absprache.</div>
+                <div className="mt-3 text-xs text-neutral-600 flex items-start gap-2 min-w-0">
+                  <span className="mt-[1px] shrink-0">📦</span>
+                  <div className="break-words min-w-0">Versand & Abholung nach Absprache.</div>
                 </div>
               )}
 
-              <div className="mt-6">
+              <div className="mt-6 min-w-0">
                 <AddToCart
                   product={{
                     _id: data._id,
@@ -216,9 +216,9 @@ export default async function ProductDetailPage({
 
               {stockText ? (
                 <div className="mt-4">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs">
-                    <span className={`h-2 w-2 rounded-full ${inStock === false ? "bg-red-500" : "bg-green-500"}`} />
-                    <span className="text-neutral-700">{stockText}</span>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs max-w-full">
+                    <span className={`h-2 w-2 rounded-full shrink-0 ${inStock === false ? "bg-red-500" : "bg-green-500"}`} />
+                    <span className="text-neutral-700 break-words">{stockText}</span>
                   </div>
                 </div>
               ) : null}
@@ -227,7 +227,7 @@ export default async function ProductDetailPage({
         </div>
 
         {Array.isArray(moreProducts) && moreProducts.length ? (
-          <section className="mt-16 pt-10 border-t border-neutral-200">
+          <section className="mt-16 pt-10 border-t border-neutral-200 min-w-0 overflow-x-hidden">
             <ProductRail title="Das könnte dich auch interessieren" viewAllHref="/shop" products={moreProducts} />
           </section>
         ) : null}
