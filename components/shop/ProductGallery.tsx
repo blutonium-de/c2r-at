@@ -32,7 +32,7 @@ export default function ProductGallery({title, images}: Props) {
             src={urlFor(hero).width(1800).height(1200).url()}
             alt={title ?? "Produkt"}
             fill
-            className="object-contain"
+            className="object-cover"
             unoptimized
             priority
           />
