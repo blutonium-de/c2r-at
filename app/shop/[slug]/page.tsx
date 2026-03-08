@@ -8,7 +8,6 @@ function money(n: number) {
   return (Math.round(n * 100) / 100).toFixed(2)
 }
 
-// **bold** Renderer
 function renderTextWithBold(input: string) {
   const parts = String(input).split(/(\*\*[^*]+\*\*)/g)
   return parts.map((p, i) => {
@@ -100,7 +99,6 @@ export default async function ProductDetailPage({
         )
       : null
 
-  // Weitere Produkte
   const catIds = Array.isArray(data?.categories) ? data.categories.map((c: any) => c?._id).filter(Boolean) : []
   let moreProducts: any[] = []
 
@@ -125,7 +123,7 @@ export default async function ProductDetailPage({
   }
 
   return (
-    <main className="min-h-screen bg-white text-black">
+    <main className="min-h-screen bg-white text-black overflow-x-hidden">
       <div className="max-w-6xl mx-auto px-6 pt-10 pb-20">
         <div className="text-sm text-neutral-500">
           <Link href="/shop" className="hover:underline">
@@ -134,13 +132,14 @@ export default async function ProductDetailPage({
           <span className="text-neutral-300">/</span> {data.title}
         </div>
 
-        <div className="mt-3 flex items-start justify-between gap-6">
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight leading-[1.08] max-w-[44ch]">
+        {/* MOBILE FIX */}
+        <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight leading-[1.1] break-words">
             {data.title}
           </h1>
 
           {condLabel ? (
-            <div className="shrink-0 mt-2 text-xs px-3 py-1 rounded-full border border-neutral-200">
+            <div className="self-start text-xs px-3 py-1 rounded-full border border-neutral-200">
               {condLabel}
             </div>
           ) : null}
@@ -183,7 +182,6 @@ export default async function ProductDetailPage({
 
               {data?.sku ? <div className="mt-3 text-xs text-neutral-500">SKU: {data.sku}</div> : null}
 
-              {/* Versand – Paket Icon wieder da */}
               {typeof minPrice === "number" ? (
                 <div className="mt-3 text-xs text-neutral-600 flex items-start gap-2">
                   <span className="mt-[1px]">📦</span>
@@ -216,7 +214,6 @@ export default async function ProductDetailPage({
                 />
               </div>
 
-              {/* Lagertext in Sidebar als Badge (grüner Punkt wieder da) */}
               {stockText ? (
                 <div className="mt-4">
                   <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1 text-xs">
@@ -229,7 +226,6 @@ export default async function ProductDetailPage({
           </aside>
         </div>
 
-        {/* Slider unten */}
         {Array.isArray(moreProducts) && moreProducts.length ? (
           <section className="mt-16 pt-10 border-t border-neutral-200">
             <ProductRail title="Das könnte dich auch interessieren" viewAllHref="/shop" products={moreProducts} />
