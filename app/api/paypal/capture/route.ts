@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server"
 import {createClient} from "@sanity/client"
 import {apiVersion, dataset, projectId} from "@/sanity/env"
+import {getTransport} from "@/lib/mailer"
 
 export const runtime = "nodejs"
 
@@ -27,37 +28,6 @@ async function getPayPalAccessToken() {
   const json = await res.json().catch(() => ({} as any))
   if (!res.ok) throw new Error(json?.error_description || "PayPal token error")
   return json.access_token as string
-}
-
-async function sendOrderEmailResend(args: {
-  to: string
-  subject: string
-  html: string
-}) {
-  const key = process.env.RESEND_API_KEY
-  const from = process.env.MAIL_FROM
-  if (!key) throw new Error("RESEND_API_KEY fehlt")
-  if (!from) throw new Error('MAIL_FROM fehlt (z.B. "c2r.at <noreply@c2r.at>")')
-
-  const r = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: args.to,
-      subject: args.subject,
-      html: args.html,
-    }),
-  })
-
-  const j = await r.json().catch(() => ({} as any))
-  if (!r.ok) {
-    throw new Error(`Resend send failed: ${j?.message || JSON.stringify(j)}`)
-  }
-  return j
 }
 
 function money(n: any) {
@@ -247,11 +217,21 @@ export async function POST(req: Request) {
     try {
       const order = await writeClient.getDocument(String(targetId))
       const adminTo = process.env.MAIL_TO
+      const mailFrom = process.env.MAIL_FROM || process.env.SMTP_USER
+      if (!mailFrom) throw new Error("MAIL_FROM oder SMTP_USER fehlt")
+
+      const transport = getTransport()
 
       if (order?.customerEmail && !order?.customerEmailSentAt) {
         const subject = `Bestellbestätigung ${order?.orderNumber || order?._id}`
         const html = buildCustomerOrderEmailHtml(order)
-        await sendOrderEmailResend({to: order.customerEmail, subject, html})
+
+        await transport.sendMail({
+          from: mailFrom,
+          to: order.customerEmail,
+          subject,
+          html,
+        })
 
         await writeClient.patch(String(targetId)).set({customerEmailSentAt: new Date().toISOString()}).commit()
       }
@@ -259,7 +239,14 @@ export async function POST(req: Request) {
       if (adminTo && !order?.adminEmailSentAt) {
         const subject = `Neue Bestellung ${order?.orderNumber || order?._id}`
         const html = buildAdminOrderEmailHtml(order)
-        await sendOrderEmailResend({to: adminTo, subject, html})
+
+        await transport.sendMail({
+          from: mailFrom,
+          to: adminTo,
+          subject,
+          html,
+          replyTo: order?.customerEmail || undefined,
+        })
 
         await writeClient.patch(String(targetId)).set({adminEmailSentAt: new Date().toISOString()}).commit()
       }
