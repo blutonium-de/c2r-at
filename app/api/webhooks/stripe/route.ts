@@ -27,108 +27,132 @@ function escapeHtml(s: any) {
     .replace(/'/g, "&#039;")
 }
 
-function buildCustomerOrderEmailHtml(order: any) {
-  const orderNumber = order?.orderNumber || order?._id
-  const name = order?.customerName || ""
-  const subtotal = money(order?.subtotal)
-  const shipping = money(order?.shippingCost)
-  const total = money(order?.amountTotal ?? order?.total)
-  const items: any[] = Array.isArray(order?.items) ? order.items : []
+function buildMailShell(args: {title: string; intro?: string; bodyHtml: string; footer?: string}) {
+  return `
+  <div style="margin:0; padding:24px; background:#f7f7f7; font-family:Arial,Helvetica,sans-serif; color:#111;">
+    <div style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #eaeaea; border-radius:18px; overflow:hidden;">
+      <div style="padding:18px 24px; border-bottom:1px solid #efefef;">
+        <div style="font-size:12px; color:#666; letter-spacing:.04em; text-transform:uppercase;">c2r.at · Blutonium Cars</div>
+        <div style="margin-top:6px; font-size:28px; line-height:1.15; font-weight:700;">${args.title}</div>
+        ${args.intro ? `<div style="margin-top:12px; font-size:16px; line-height:1.6; color:#222;">${args.intro}</div>` : ""}
+      </div>
 
-  const itemsHtml = items
+      <div style="padding:24px;">
+        ${args.bodyHtml}
+      </div>
+
+      ${
+        args.footer
+          ? `<div style="padding:16px 24px; border-top:1px solid #efefef; font-size:12px; color:#666;">${args.footer}</div>`
+          : ""
+      }
+    </div>
+  </div>`
+}
+
+function buildItemsTable(items: any[]) {
+  const rows = items
     .map((it) => {
       const title = escapeHtml(it?.title)
       const qty = escapeHtml(it?.quantity)
       const unit = money(it?.unitPrice)
-      return `<tr>
-        <td style="padding:6px 0;">${title}</td>
-        <td style="padding:6px 0; text-align:right;">${qty}×</td>
-        <td style="padding:6px 0; text-align:right;">${unit} €</td>
+      const lineTotal =
+        typeof it?.unitPrice === "number" && typeof it?.quantity === "number"
+          ? `${money(it.unitPrice * it.quantity)} €`
+          : "—"
+
+      return `
+      <tr>
+        <td style="padding:10px 0; border-bottom:1px solid #f1f1f1; vertical-align:top; font-size:15px; line-height:1.45;">
+          ${title}
+        </td>
+        <td style="padding:10px 0; border-bottom:1px solid #f1f1f1; vertical-align:top; text-align:center; white-space:nowrap; font-size:15px;">
+          ${qty}×
+        </td>
+        <td style="padding:10px 0; border-bottom:1px solid #f1f1f1; vertical-align:top; text-align:right; white-space:nowrap; font-size:15px;">
+          ${unit} €
+        </td>
+        <td style="padding:10px 0; border-bottom:1px solid #f1f1f1; vertical-align:top; text-align:right; white-space:nowrap; font-size:15px; font-weight:700;">
+          ${lineTotal}
+        </td>
       </tr>`
     })
     .join("")
 
   return `
-  <div style="font-family: ui-sans-serif, system-ui, -apple-system; line-height:1.45">
-    <h2 style="margin:0 0 8px 0;">Bestellbestätigung ${escapeHtml(orderNumber)}</h2>
-    <p style="margin:0 0 14px 0;">Danke${name ? " " + escapeHtml(name) : ""}! Wir haben deine Bestellung erhalten und bearbeiten sie jetzt.</p>
+  <table style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th align="left" style="padding:0 0 10px 0; border-bottom:1px solid #ddd; font-size:13px; color:#666;">Artikel</th>
+        <th align="center" style="padding:0 0 10px 0; border-bottom:1px solid #ddd; font-size:13px; color:#666;">Menge</th>
+        <th align="right" style="padding:0 0 10px 0; border-bottom:1px solid #ddd; font-size:13px; color:#666;">Einzelpreis</th>
+        <th align="right" style="padding:0 0 10px 0; border-bottom:1px solid #ddd; font-size:13px; color:#666;">Gesamt</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`
+}
 
-    <table style="width:100%; border-collapse:collapse; margin:14px 0;">
-      <thead>
-        <tr>
-          <th align="left" style="border-bottom:1px solid #eee; padding:6px 0;">Artikel</th>
-          <th align="right" style="border-bottom:1px solid #eee; padding:6px 0;">Menge</th>
-          <th align="right" style="border-bottom:1px solid #eee; padding:6px 0;">Preis</th>
-        </tr>
-      </thead>
-      <tbody>${itemsHtml}</tbody>
-    </table>
+function buildSummary(order: any) {
+  const subtotal = money(order?.subtotal)
+  const shipping = money(order?.shippingCost)
+  const total = money(order?.amountTotal ?? order?.total)
 
-    <div style="margin-top:10px;">
-      <div style="display:flex; justify-content:space-between;"><span>Zwischensumme</span><strong>${subtotal} €</strong></div>
-      <div style="display:flex; justify-content:space-between;"><span>Versand</span><strong>${shipping} €</strong></div>
-      <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:18px;">
-        <span>Gesamt</span><strong>${total} €</strong>
-      </div>
+  return `
+  <div style="margin-top:18px; padding:16px 18px; border:1px solid #efefef; border-radius:14px; background:#fafafa;">
+    <div style="display:flex; justify-content:space-between; gap:12px; font-size:15px; margin-bottom:8px;">
+      <span>Zwischensumme</span>
+      <strong>${subtotal} €</strong>
     </div>
-
-    <p style="margin:14px 0 0 0; color:#666; font-size:12px;">
-      Zahlung: Stripe · Bestellnummer: ${escapeHtml(orderNumber)}
-    </p>
+    <div style="display:flex; justify-content:space-between; gap:12px; font-size:15px; margin-bottom:8px;">
+      <span>Versand</span>
+      <strong>${shipping} €</strong>
+    </div>
+    <div style="display:flex; justify-content:space-between; gap:12px; font-size:20px; font-weight:700;">
+      <span>Gesamt</span>
+      <span>${total} €</span>
+    </div>
   </div>`
+}
+
+function buildCustomerOrderEmailHtml(order: any) {
+  const orderNumber = order?.orderNumber || order?._id
+  const name = order?.customerName || ""
+  const items: any[] = Array.isArray(order?.items) ? order.items : []
+
+  return buildMailShell({
+    title: `Bestellbestätigung ${escapeHtml(orderNumber)}`,
+    intro: `Danke${name ? " " + escapeHtml(name) : ""}! Wir haben deine Bestellung erhalten und bearbeiten sie jetzt.`,
+    bodyHtml: `
+      ${buildItemsTable(items)}
+      ${buildSummary(order)}
+      <div style="margin-top:18px; font-size:13px; color:#666;">
+        Zahlung: Stripe<br/>
+        Bestellnummer: ${escapeHtml(orderNumber)}
+      </div>
+    `,
+    footer: `Diese E-Mail wurde automatisch von c2r.at versendet.`,
+  })
 }
 
 function buildAdminOrderEmailHtml(order: any) {
   const orderNumber = order?.orderNumber || order?._id
-  const subtotal = money(order?.subtotal)
-  const shipping = money(order?.shippingCost)
-  const total = money(order?.amountTotal ?? order?.total)
   const items: any[] = Array.isArray(order?.items) ? order.items : []
 
-  const itemsHtml = items
-    .map((it) => {
-      const title = escapeHtml(it?.title)
-      const sku = escapeHtml(it?.sku || "")
-      const qty = escapeHtml(it?.quantity)
-      const unit = money(it?.unitPrice)
-      return `<tr>
-        <td style="padding:6px 0;">${title}${sku ? ` <span style="color:#666">(${sku})</span>` : ""}</td>
-        <td style="padding:6px 0; text-align:right;">${qty}×</td>
-        <td style="padding:6px 0; text-align:right;">${unit} €</td>
-      </tr>`
-    })
-    .join("")
-
-  return `
-  <div style="font-family: ui-sans-serif, system-ui, -apple-system; line-height:1.45">
-    <h2 style="margin:0 0 8px 0;">Neue Bestellung ${escapeHtml(orderNumber)}</h2>
-
-    <p style="margin:0 0 12px 0;">
+  return buildMailShell({
+    title: `Neue Bestellung ${escapeHtml(orderNumber)}`,
+    intro: `
       <strong>Kunde:</strong> ${escapeHtml(order?.customerName || "—")}<br/>
       <strong>E-Mail:</strong> ${escapeHtml(order?.customerEmail || "—")}<br/>
       <strong>Telefon:</strong> ${escapeHtml(order?.customerPhone || "—")}<br/>
       <strong>Zahlung:</strong> Stripe
-    </p>
-
-    <table style="width:100%; border-collapse:collapse; margin:14px 0;">
-      <thead>
-        <tr>
-          <th align="left" style="border-bottom:1px solid #eee; padding:6px 0;">Artikel</th>
-          <th align="right" style="border-bottom:1px solid #eee; padding:6px 0;">Menge</th>
-          <th align="right" style="border-bottom:1px solid #eee; padding:6px 0;">Preis</th>
-        </tr>
-      </thead>
-      <tbody>${itemsHtml}</tbody>
-    </table>
-
-    <div style="margin-top:10px;">
-      <div style="display:flex; justify-content:space-between;"><span>Zwischensumme</span><strong>${subtotal} €</strong></div>
-      <div style="display:flex; justify-content:space-between;"><span>Versand</span><strong>${shipping} €</strong></div>
-      <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:18px;">
-        <span>Gesamt</span><strong>${total} €</strong>
-      </div>
-    </div>
-  </div>`
+    `,
+    bodyHtml: `
+      ${buildItemsTable(items)}
+      ${buildSummary(order)}
+    `,
+    footer: `Neue Bestellung über c2r.at eingegangen.`,
+  })
 }
 
 export async function POST(req: Request) {
