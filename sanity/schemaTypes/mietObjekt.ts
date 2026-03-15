@@ -19,12 +19,12 @@ export const mietObjekt = defineType({
     // BASIS
     // =========================
     defineField({
-  name: "sortOrder",
-  title: "Sortierung (Mietseite)",
-  type: "number",
-  description: "Kleinere Zahl = weiter oben auf der Miet-Seite.",
-}),
-    
+      name: "sortOrder",
+      title: "Sortierung (Mietseite)",
+      type: "number",
+      description: "Kleinere Zahl = weiter oben auf der Miet-Seite.",
+    }),
+
     defineField({
       name: "name",
       title: "Name",
@@ -226,14 +226,12 @@ export const mietObjekt = defineType({
       fieldset: "saison",
       description: "Pflicht nur bei Preis-Modell 'Saisonpreise'.",
       hidden: ({document}) => (document as any)?.pricingModel !== "seasonal",
-      // ✅ WICHTIG: Validation auf Feld-Ebene (nicht pro Item) => keine “roten Items” mehr
       validation: (Rule) =>
         Rule.custom((v, ctx) => {
           const doc = ctx?.document as any
           if (doc?.pricingModel !== "seasonal") return true
           if (!Array.isArray(v) || v.length === 0) return "Saisonpreise sind Pflicht bei Preis-Modell 'Saisonpreise'."
 
-          // Jede Saison muss sauber befüllt sein:
           for (let i = 0; i < v.length; i++) {
             const s: any = v[i]
             if (!s?.title) return `Saison #${i + 1}: Saison-Name fehlt`
@@ -376,6 +374,30 @@ export const mietObjekt = defineType({
     }),
 
     defineField({name: "beschreibung", title: "Beschreibung", type: "text", fieldset: "media"}),
+
+    defineField({
+      name: "beschreibungRich",
+      title: "Beschreibung (Rich Text)",
+      type: "array",
+      fieldset: "media",
+      description: "Absätze, Fett, Listen etc. (Empfohlen).",
+      of: [
+        {
+          type: "block",
+          styles: [
+            {title: "Normal", value: "normal"},
+            {title: "H3", value: "h3"},
+          ],
+          lists: [{title: "Bullet", value: "bullet"}],
+          marks: {
+            decorators: [
+              {title: "Fett", value: "strong"},
+              {title: "Kursiv", value: "em"},
+            ],
+          },
+        },
+      ],
+    }),
   ],
 
   preview: {
