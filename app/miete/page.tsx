@@ -66,8 +66,36 @@ function formatMainPrice(item: any) {
   return "Preis auf Anfrage"
 }
 
-export default async function MietePage() {
+export default async function MietePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{kategorie?: string}> | {kategorie?: string}
+}) {
+  const resolvedSearchParams =
+    typeof (searchParams as any)?.then === "function"
+      ? await (searchParams as any)
+      : (searchParams as any)
+
+  const activeCategory = String(resolvedSearchParams?.kategorie ?? "").trim().toLowerCase()
   const items = await client.fetch(query, {}, {perspective: "published"})
+
+  const categories = Array.from(
+    new Map(
+      (Array.isArray(items) ? items : [])
+        .filter((item: any) => item?.kategorieSlug && item?.kategorieTitel)
+        .map((item: any) => [
+          item.kategorieSlug,
+          {
+            slug: item.kategorieSlug,
+            title: item.kategorieTitel,
+          },
+        ])
+    ).values()
+  )
+
+  const filteredItems = activeCategory
+    ? items.filter((item: any) => String(item?.kategorieSlug ?? "").toLowerCase() === activeCategory)
+    : items
 
   return (
     <main className="min-h-screen bg-white text-black">
@@ -76,69 +104,108 @@ export default async function MietePage() {
         <p className="mt-3 text-neutral-600 max-w-2xl">
           Adventure Vans, Luxus Wohnwagen, Transport & Spezialfahrzeuge – sauber gepflegt über unser Admin-System.
         </p>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href="/miete"
+            className={`inline-flex items-center rounded-full px-4 py-2 text-sm border transition ${
+              !activeCategory
+                ? "border-black bg-black text-white"
+                : "border-neutral-300 bg-white text-black hover:border-black"
+            }`}
+          >
+            Alle
+          </Link>
+
+          {categories.map((cat: any) => {
+            const isActive = activeCategory === String(cat.slug).toLowerCase()
+
+            return (
+              <Link
+                key={cat.slug}
+                href={`/miete?kategorie=${cat.slug}`}
+                className={`inline-flex items-center rounded-full px-4 py-2 text-sm border transition ${
+                  isActive
+                    ? "border-black bg-black text-white"
+                    : "border-neutral-300 bg-white text-black hover:border-black"
+                }`}
+              >
+                {cat.title}
+              </Link>
+            )
+          })}
+        </div>
       </header>
 
-      <section className="max-w-6xl mx-auto px-6 pb-20 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map((item: any) => {
-          const img = item?.bilder?.[0]
+      <section className="max-w-6xl mx-auto px-6 pb-20">
+        {filteredItems.length === 0 ? (
+          <div className="rounded-3xl border border-neutral-200 p-6 text-sm text-neutral-600">
+            Für diese Kategorie sind aktuell keine Mietobjekte verfügbar.
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredItems.map((item: any) => {
+              const img = item?.bilder?.[0]
 
-          const tarifeRaw = Array.isArray(item?.tarife)
-            ? item.tarife.filter((t: any) => typeof t?.price === "number")
-            : []
-          const tarife = sortTarife(tarifeRaw).slice(0, 2)
+              const tarifeRaw = Array.isArray(item?.tarife)
+                ? item.tarife.filter((t: any) => typeof t?.price === "number")
+                : []
+              const tarife = sortTarife(tarifeRaw).slice(0, 2)
 
-          return (
-            <Link
-              key={item._id}
-              href={`/miete/${item.slug?.current}`}
-              className="group rounded-3xl border border-neutral-200 overflow-hidden hover:shadow-xl transition duration-300"
-            >
-              <div className="relative aspect-[4/3] bg-neutral-100">
-                {img ? (
-                  <Image
-                    src={urlFor(img).width(1200).height(900).url()}
-                    alt={item.name}
-                    fill
-                    className="object-cover group-hover:scale-[1.02] transition duration-300"
-                    unoptimized
-                  />
-                ) : null}
+              return (
+                <Link
+                  key={item._id}
+                  href={`/miete/${item.slug?.current}`}
+                  className="group rounded-3xl border border-neutral-200 overflow-hidden hover:shadow-xl transition duration-300"
+                >
+                  <div className="relative aspect-[4/3] bg-neutral-100">
+                    {img ? (
+                      <Image
+                        src={urlFor(img).width(1200).height(900).url()}
+                        alt={item.name}
+                        fill
+                        className="object-cover group-hover:scale-[1.02] transition duration-300"
+                        unoptimized
+                      />
+                    ) : null}
 
-                {item.inWartung ? (
-                  <div className="absolute top-4 left-4 text-xs px-3 py-1 rounded-full bg-black text-white">
-                    Wartung / nicht buchbar
+                    {item.inWartung ? (
+                      <div className="absolute top-4 left-4 text-xs px-3 py-1 rounded-full bg-black text-white">
+                        Wartung / nicht buchbar
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
-              </div>
 
-              <div className="p-6">
-                <div className="text-xs text-neutral-500">{item.kategorieTitel ?? "Miete"}</div>
+                  <div className="p-6">
+                    <div className="text-xs text-neutral-500">{item.kategorieTitel ?? "Miete"}</div>
 
-                <h3 className="mt-1 text-lg font-semibold">{item.name}</h3>
+                    <h3 className="mt-1 text-lg font-semibold">{item.name}</h3>
 
-                <div className="mt-2 flex items-center justify-between">
-                  <div className="text-sm text-neutral-600">{formatMainPrice(item)}</div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <div className="text-sm text-neutral-600">{formatMainPrice(item)}</div>
 
-                  <div className="text-sm text-neutral-500 group-hover:text-black transition">Details →</div>
-                </div>
+                      <div className="text-sm text-neutral-500 group-hover:text-black transition">Details →</div>
+                    </div>
 
-                {tarife.length ? (
-                  <div className="mt-3 space-y-1">
-                    {tarife.map((t: any, idx: number) => {
-                      const label = t.title?.trim() ? t.title : formatTarifLabel(t)
-                      return (
-                        <div key={`${label}-${idx}`} className="text-xs text-neutral-600 flex justify-between gap-3">
-                          <span className="truncate">{label}</span>
-                          <span className="whitespace-nowrap font-medium text-neutral-800">{t.price} €</span>
-                        </div>
-                      )
-                    })}
+                    {tarife.length ? (
+                      <div className="mt-3 space-y-1">
+                        {tarife.map((t: any, idx: number) => {
+                          const label = t.title?.trim() ? t.title : formatTarifLabel(t)
+                          return (
+                            <div key={`${label}-${idx}`} className="text-xs text-neutral-600 flex justify-between gap-3">
+                              <span className="truncate">{label}</span>
+                              <span className="whitespace-nowrap font-medium text-neutral-800">{t.price} €</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
-              </div>
-            </Link>
-          )
-        })}
+                </Link>
+              )
+            })}
+          </div>
+        )}
       </section>
     </main>
   )
