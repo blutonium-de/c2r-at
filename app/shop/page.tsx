@@ -30,9 +30,6 @@ const categoriesQuery = `*[_type == "shopCategory" && (isActive == true || !defi
   "slug": slug.current
 }`
 
-// ✅ WICHTIG: unterstützt BEIDES:
-// 1) category (single ref) ->slug.current
-// 2) categories[] (array refs) ->slug.current
 const listQuery = `*[
   _type == "product" &&
   isActive == true &&
@@ -41,6 +38,12 @@ const listQuery = `*[
     $cat == "" ||
     category->slug.current == $cat ||
     count(categories[]->slug.current[@ == $cat]) > 0
+  ) &&
+  (
+    $q == "" ||
+    title match $qWild ||
+    sku match $qWild ||
+    description match $qWild
   )
 ] | order(_createdAt desc){
   _id,
@@ -59,6 +62,12 @@ const sliderQuery = `*[
     $cat == "" ||
     category->slug.current == $cat ||
     count(categories[]->slug.current[@ == $cat]) > 0
+  ) &&
+  (
+    $q == "" ||
+    title match $qWild ||
+    sku match $qWild ||
+    description match $qWild
   )
 ] | order(_createdAt desc)[0...20]{
   _id,
@@ -73,12 +82,14 @@ const sliderQuery = `*[
 
 export default async function ShopPage({searchParams}: {searchParams?: SearchParams}) {
   const sp = typeof (searchParams as any)?.then === "function" ? await (searchParams as any) : searchParams
-  const cat = getParam(sp, "cat") // immer string
+  const cat = getParam(sp, "cat")
+  const q = getParam(sp, "q").trim()
+  const qWild = q ? `*${q}*` : ""
 
   const [categories, items, sliderItems] = await Promise.all([
     client.fetch(categoriesQuery, {}, {perspective: "published"}),
-    client.fetch(listQuery, {cat}, {perspective: "published"}),
-    client.fetch(sliderQuery, {cat}, {perspective: "published"}),
+    client.fetch(listQuery, {cat, q, qWild}, {perspective: "published"}),
+    client.fetch(sliderQuery, {cat, q, qWild}, {perspective: "published"}),
   ])
 
   const activeCat = Array.isArray(categories) && cat ? categories.find((c: any) => c?.slug === cat) : null
@@ -94,11 +105,31 @@ export default async function ShopPage({searchParams}: {searchParams?: SearchPar
           G-Klasse Ersatzteile (neu/gebraucht), Caravan Zubehör und ausgewählte Shop-Highlights.
         </p>
 
+        {/* Suche */}
+        <form action="/shop" method="get" className="mt-6">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input type="hidden" name="cat" value={cat} />
+            <input
+              type="text"
+              name="q"
+              defaultValue={q}
+              placeholder="Suche nach Produkt, SKU oder Begriff…"
+              className="w-full rounded-full border border-neutral-300 px-5 py-3 text-sm outline-none focus:border-black"
+            />
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center rounded-full bg-black text-white px-5 py-3 text-sm hover:opacity-85 transition"
+            >
+              Suchen
+            </button>
+          </div>
+        </form>
+
         {/* Filter-Chips */}
         {Array.isArray(categories) && categories.length ? (
           <div className="mt-6 flex flex-wrap gap-2">
             <Link
-              href="/shop"
+              href={q ? `/shop?q=${encodeURIComponent(q)}` : "/shop"}
               className={`px-3 py-1 rounded-full border text-xs transition ${
                 !cat ? "border-black text-black" : "border-neutral-200 text-neutral-700 hover:border-black"
               }`}
@@ -107,7 +138,11 @@ export default async function ShopPage({searchParams}: {searchParams?: SearchPar
             </Link>
 
             {categories.map((c: any) => {
-              const href = c?.slug ? `/shop?cat=${encodeURIComponent(c.slug)}` : "/shop"
+              const href = c?.slug
+                ? q
+                  ? `/shop?cat=${encodeURIComponent(c.slug)}&q=${encodeURIComponent(q)}`
+                  : `/shop?cat=${encodeURIComponent(c.slug)}`
+                : "/shop"
               const isActive = c?.slug && c.slug === cat
               return (
                 <Link
@@ -124,10 +159,21 @@ export default async function ShopPage({searchParams}: {searchParams?: SearchPar
           </div>
         ) : null}
 
-        {activeCat ? (
-          <div className="mt-4 text-sm text-neutral-600">
-            Gefiltert nach: <span className="font-medium text-black">{activeCat.title}</span>{" "}
-            <Link href="/shop" className="underline ml-2 text-neutral-700 hover:text-black">
+        {activeCat || q ? (
+          <div className="mt-4 text-sm text-neutral-600 flex flex-wrap gap-x-3 gap-y-1">
+            {activeCat ? (
+              <div>
+                Gefiltert nach: <span className="font-medium text-black">{activeCat.title}</span>
+              </div>
+            ) : null}
+
+            {q ? (
+              <div>
+                Suche: <span className="font-medium text-black">„{q}“</span>
+              </div>
+            ) : null}
+
+            <Link href="/shop" className="underline text-neutral-700 hover:text-black">
               Filter entfernen
             </Link>
           </div>
@@ -167,7 +213,6 @@ export default async function ShopPage({searchParams}: {searchParams?: SearchPar
                 </div>
 
                 <div className="p-6">
-                  {/* 2 Zeilen fix, damit Preis immer “gleich” sitzt */}
                   <h3 className="text-lg font-semibold line-clamp-2 min-h-[3.25rem]">{p?.title ?? "Produkt"}</h3>
 
                   <div className="mt-2 flex items-end justify-between gap-3">
@@ -185,20 +230,38 @@ export default async function ShopPage({searchParams}: {searchParams?: SearchPar
             )
           })
         ) : (
-          <div className="text-neutral-600">Keine Produkte gefunden.</div>
+          <div className="text-neutral-600">
+            Keine Produkte gefunden.
+            {q ? (
+              <>
+                {" "}
+                <Link href={cat ? `/shop?cat=${encodeURIComponent(cat)}` : "/shop"} className="underline hover:text-black">
+                  Suche zurücksetzen
+                </Link>
+              </>
+            ) : null}
+          </div>
         )}
       </section>
 
       {/* Slider unten */}
       {Array.isArray(sliderItems) && sliderItems.length ? (
-  <section className="mt-16 border-t border-neutral-200 pt-10 pb-12">
-    <ProductSlider
-      title="Beliebt"
-      items={sliderItems}
-      viewAllHref={cat ? `/shop?cat=${encodeURIComponent(cat)}` : "/shop"}
-    />
-  </section>
-) : null}
+        <section className="mt-16 border-t border-neutral-200 pt-10 pb-12">
+          <ProductSlider
+            title="Beliebt"
+            items={sliderItems}
+            viewAllHref={
+              cat && q
+                ? `/shop?cat=${encodeURIComponent(cat)}&q=${encodeURIComponent(q)}`
+                : cat
+                  ? `/shop?cat=${encodeURIComponent(cat)}`
+                  : q
+                    ? `/shop?q=${encodeURIComponent(q)}`
+                    : "/shop"
+            }
+          />
+        </section>
+      ) : null}
     </main>
   )
 }
