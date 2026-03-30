@@ -158,7 +158,7 @@ export default async function MietePage({
           </div>
 
           <div className="flex items-end justify-between gap-4 mb-3">
-            <h2 className="text-base md:text-lg font-semibold tracking-tight">Blutonium & c2r Miet-Highlights</h2>
+            <h2 className="text-base md:text-lg font-semibold tracking-tight">Unsere Miet-Highlights & Aktionen</h2>
             <Link href="/miete" className="text-sm text-neutral-600 hover:text-black underline shrink-0">
               Alle ansehen
             </Link>
