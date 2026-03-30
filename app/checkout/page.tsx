@@ -196,10 +196,12 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white text-black">
-      <div className="max-w-6xl mx-auto px-6 pt-14 pb-20">
+    <main className="min-h-screen bg-white text-black overflow-x-hidden">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-14 pb-20">
         <div className="text-sm text-neutral-500">Checkout</div>
-        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">Bestellung abschließen</h1>
+        <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight break-words">
+          Bestellung abschließen
+        </h1>
 
         {!items.length ? (
           <div className="mt-10 text-neutral-600">
@@ -209,48 +211,48 @@ export default function CheckoutPage() {
             </Link>
           </div>
         ) : (
-          <div className="mt-10 grid gap-10 lg:grid-cols-[1.2fr_.8fr]">
+          <div className="mt-10 grid gap-10 lg:grid-cols-[1.2fr_.8fr] min-w-0">
             {/* LEFT */}
-            <section className="space-y-10">
+            <section className="space-y-10 min-w-0">
               {/* Kontakt */}
-              <div className="rounded-3xl border border-neutral-200 p-6">
+              <div className="rounded-3xl border border-neutral-200 p-6 min-w-0">
                 <div className="text-lg font-semibold">Kontakt</div>
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  <div>
+                <div className="mt-4 grid gap-4 md:grid-cols-2 min-w-0">
+                  <div className="min-w-0">
                     <label className="text-sm text-neutral-600">E-Mail *</label>
                     <input
                       name="email"
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
+                      className="mt-1 w-full min-w-0 rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
                       type="email"
                       inputMode="email"
                       placeholder="name@email.com"
                     />
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <label className="text-sm text-neutral-600">Name *</label>
                     <input
                       name="fullName"
                       autoComplete="name"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
+                      className="mt-1 w-full min-w-0 rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
                       type="text"
                       placeholder="Vorname Nachname"
                     />
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <label className="text-sm text-neutral-600">Telefon (optional)</label>
                     <input
                       name="phone"
                       autoComplete="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
+                      className="mt-1 w-full min-w-0 rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
                       type="tel"
                       inputMode="tel"
                       placeholder="+43 ..."
@@ -260,11 +262,11 @@ export default function CheckoutPage() {
               </div>
 
               {/* Lieferadresse */}
-              <div className="rounded-3xl border border-neutral-200 p-6">
+              <div className="rounded-3xl border border-neutral-200 p-6 min-w-0">
                 <div className="text-lg font-semibold">Lieferadresse</div>
 
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  <div>
+                <div className="mt-4 grid gap-4 md:grid-cols-2 min-w-0">
+                  <div className="min-w-0">
                     <label className="text-sm text-neutral-600">Region *</label>
                     <select
                       name="region"
@@ -275,47 +277,49 @@ export default function CheckoutPage() {
                         setRegion(v)
                         setCountry(v)
                       }}
-                      className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black bg-white"
+                      className="mt-1 w-full min-w-0 rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black bg-white"
                     >
                       <option value="AT">Österreich (AT)</option>
                       <option value="EU">EU (alle übrigen EU Länder)</option>
                     </select>
-                    <div className="mt-1 text-xs text-neutral-500">Versand nur innerhalb EU (keine Nicht-EU Länder).</div>
+                    <div className="mt-1 text-xs text-neutral-500">
+                      Versand nur innerhalb EU (keine Nicht-EU Länder).
+                    </div>
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <label className="text-sm text-neutral-600">PLZ *</label>
                     <input
                       name="postalCode"
                       autoComplete="shipping postal-code"
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
-                      className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
+                      className="mt-1 w-full min-w-0 rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
                       type="text"
                       inputMode="numeric"
                     />
                   </div>
 
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-2 min-w-0">
                     <label className="text-sm text-neutral-600">Straße + Hausnr. *</label>
                     <input
                       name="addressLine1"
                       autoComplete="shipping address-line1"
                       value={line1}
                       onChange={(e) => setLine1(e.target.value)}
-                      className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
+                      className="mt-1 w-full min-w-0 rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
                       type="text"
                     />
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <label className="text-sm text-neutral-600">Ort *</label>
                     <input
                       name="city"
                       autoComplete="shipping address-level2"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
+                      className="mt-1 w-full min-w-0 rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
                       type="text"
                     />
                   </div>
@@ -323,14 +327,14 @@ export default function CheckoutPage() {
               </div>
 
               {/* Firma */}
-              <div className="rounded-3xl border border-neutral-200 p-6">
+              <div className="rounded-3xl border border-neutral-200 p-6 min-w-0">
                 <div className="flex items-center justify-between gap-4">
-                  <div>
+                  <div className="min-w-0">
                     <div className="text-lg font-semibold">Kauf als Firma (optional)</div>
                     <div className="text-sm text-neutral-600">Preise sind immer inkl. MwSt. (UID-Prüfung später).</div>
                   </div>
 
-                  <label className="inline-flex items-center gap-2 text-sm">
+                  <label className="inline-flex items-center gap-2 text-sm shrink-0">
                     <input
                       type="checkbox"
                       checked={isCompany}
@@ -342,27 +346,27 @@ export default function CheckoutPage() {
                 </div>
 
                 {isCompany ? (
-                  <div className="mt-4 grid gap-4 md:grid-cols-2">
-                    <div>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2 min-w-0">
+                    <div className="min-w-0">
                       <label className="text-sm text-neutral-600">Firma *</label>
                       <input
                         name="companyName"
                         autoComplete="organization"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
-                        className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
+                        className="mt-1 w-full min-w-0 rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
                         type="text"
                       />
                     </div>
 
-                    <div>
+                    <div className="min-w-0">
                       <label className="text-sm text-neutral-600">UID / VAT ID (optional)</label>
                       <input
                         name="vatId"
                         autoComplete="off"
                         value={vatId}
                         onChange={(e) => setVatId(e.target.value)}
-                        className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
+                        className="mt-1 w-full min-w-0 rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
                         type="text"
                       />
                     </div>
@@ -371,14 +375,14 @@ export default function CheckoutPage() {
               </div>
 
               {/* Rechnungsadresse (MVP: wie Lieferung) */}
-              <div className="rounded-3xl border border-neutral-200 p-6">
+              <div className="rounded-3xl border border-neutral-200 p-6 min-w-0">
                 <div className="flex items-center justify-between gap-4">
-                  <div>
+                  <div className="min-w-0">
                     <div className="text-lg font-semibold">Rechnungsadresse</div>
                     <div className="text-sm text-neutral-600">MVP: wie Lieferadresse.</div>
                   </div>
 
-                  <label className="inline-flex items-center gap-2 text-sm opacity-60">
+                  <label className="inline-flex items-center gap-2 text-sm opacity-60 shrink-0">
                     <input
                       type="checkbox"
                       checked={billingSame}
@@ -393,13 +397,13 @@ export default function CheckoutPage() {
             </section>
 
             {/* RIGHT */}
-            <aside className="space-y-6">
-              <div className="rounded-3xl border border-neutral-200 p-6">
+            <aside className="space-y-6 min-w-0">
+              <div className="rounded-3xl border border-neutral-200 p-6 min-w-0">
                 <div className="text-lg font-semibold">Deine Bestellung</div>
 
-                <div className="mt-5 space-y-4">
+                <div className="mt-5 space-y-4 min-w-0">
                   {items.map((x: any) => (
-                    <div key={x.key} className="flex gap-3 items-start">
+                    <div key={x.key} className="flex gap-3 items-start min-w-0">
                       <div className="relative h-16 w-20 rounded-2xl overflow-hidden bg-neutral-100 border border-neutral-200 shrink-0">
                         {x.image?.asset ? (
                           <Image
@@ -423,56 +427,56 @@ export default function CheckoutPage() {
                         </div>
                       </div>
 
-                      <div className="text-sm font-semibold whitespace-nowrap">
+                      <div className="text-sm font-semibold whitespace-nowrap shrink-0">
                         {typeof x.price === "number" ? `${money(x.price * x.qty)} €` : "—"}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-6 border-t border-neutral-200 pt-5 space-y-3">
-                  <div className="flex items-center justify-between text-sm">
+                <div className="mt-6 border-t border-neutral-200 pt-5 space-y-3 min-w-0">
+                  <div className="flex items-center justify-between text-sm gap-3 min-w-0">
                     <span className="text-neutral-600">Zwischensumme</span>
-                    <span className="font-semibold">{money(calcSubtotal)} €</span>
+                    <span className="font-semibold whitespace-nowrap shrink-0">{money(calcSubtotal)} €</span>
                   </div>
 
                   {/* Versand */}
-                  <div className="rounded-2xl border border-neutral-200 p-4">
-                    <div className="flex items-center justify-between">
+                  <div className="rounded-2xl border border-neutral-200 p-4 min-w-0">
+                    <div className="flex items-center justify-between gap-3 min-w-0">
                       <div className="text-sm font-semibold">Versand</div>
-                      {loadingQuote ? <div className="text-xs text-neutral-500">lädt…</div> : null}
+                      {loadingQuote ? <div className="text-xs text-neutral-500 shrink-0">lädt…</div> : null}
                     </div>
 
                     {quote && !quote.ok ? <div className="mt-2 text-sm text-red-600">{quote.error}</div> : null}
 
                     {quote && quote.ok ? (
                       <>
-                        {quote.deliveryHint ? <div className="mt-2 text-xs text-neutral-500">{quote.deliveryHint}</div> : null}
+                        {quote.deliveryHint ? <div className="mt-2 text-xs text-neutral-500 break-words">{quote.deliveryHint}</div> : null}
 
-                        <div className="mt-3 space-y-2">
+                        <div className="mt-3 space-y-2 min-w-0">
                           {shippingOptions.map((opt) => (
                             <label
                               key={opt.id}
-                              className="flex items-start justify-between gap-3 rounded-2xl border border-neutral-200 px-4 py-3 cursor-pointer hover:border-black transition"
+                              className="flex flex-col gap-3 rounded-2xl border border-neutral-200 px-4 py-3 cursor-pointer hover:border-black transition min-w-0 sm:flex-row sm:items-start sm:justify-between"
                             >
-                              <div className="flex items-start gap-3">
+                              <div className="flex items-start gap-3 min-w-0">
                                 <input
                                   type="radio"
                                   name="shipping"
-                                  className="mt-1"
+                                  className="mt-1 shrink-0"
                                   checked={selectedShippingProfileId === opt.id}
                                   onChange={() => setSelectedShippingProfileId(opt.id)}
                                 />
-                                <div>
-                                  <div className="text-sm font-medium">{opt.title}</div>
-                                  <div className="text-xs text-neutral-600">
+                                <div className="min-w-0">
+                                  <div className="text-sm font-medium break-words">{opt.title}</div>
+                                  <div className="text-xs text-neutral-600 break-words">
                                     Region {opt.region}
                                     {typeof opt.freeFrom === "number" ? ` · frei ab ${opt.freeFrom} €` : ""}
                                   </div>
                                 </div>
                               </div>
 
-                              <div className="text-sm font-semibold whitespace-nowrap">
+                              <div className="text-sm font-semibold whitespace-nowrap shrink-0 self-end sm:self-auto">
                                 {opt.cost === 0 ? "Gratis" : `${money(opt.cost)} €`}
                               </div>
                             </label>
@@ -482,12 +486,12 @@ export default function CheckoutPage() {
                     ) : null}
                   </div>
 
-                  <div className="flex items-center justify-between text-base">
+                  <div className="flex items-center justify-between text-base gap-3 min-w-0">
                     <span className="text-neutral-600">Gesamt</span>
-                    <span className="text-xl font-semibold">{money(total)} €</span>
+                    <span className="text-xl font-semibold whitespace-nowrap shrink-0">{money(total)} €</span>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => doCheckout("paypal")}
@@ -501,13 +505,26 @@ export default function CheckoutPage() {
                       type="button"
                       onClick={() => doCheckout("stripe")}
                       disabled={checkoutLoading !== null}
-                      className="inline-flex items-center justify-center rounded-full bg-black text-white px-4 py-3 text-sm hover:opacity-85 transition disabled:opacity-50"
+                      className="inline-flex flex-col items-center justify-center gap-1 rounded-full bg-black text-white px-4 py-3 text-sm hover:opacity-85 transition disabled:opacity-50"
                     >
-                      {checkoutLoading === "stripe" ? "Stripe…" : "Stripe"}
+                      <span>{checkoutLoading === "stripe" ? "Lädt…" : "Kreditkarte"}</span>
+
+                      {checkoutLoading !== "stripe" ? (
+                        <span className="flex items-center gap-1.5">
+                          <span className="inline-flex h-5 min-w-[34px] items-center justify-center rounded bg-white px-1.5 text-[10px] font-bold tracking-wide text-blue-700">
+                            VISA
+                          </span>
+                          <span className="inline-flex h-5 min-w-[34px] items-center justify-center rounded bg-white px-1.5 text-[10px] font-bold tracking-wide text-red-600">
+                            MC
+                          </span>
+                        </span>
+                      ) : null}
                     </button>
                   </div>
 
-                  <div className="mt-2 text-[11px] text-neutral-500">Preise inkl. MwSt. Versand wird vor Zahlung angezeigt.</div>
+                  <div className="mt-2 text-[11px] text-neutral-500 break-words">
+                    Preise inkl. MwSt. Versand wird vor Zahlung angezeigt.
+                  </div>
 
                   <div className="mt-4">
                     <Link href="/cart" className="text-sm underline text-neutral-600 hover:text-black">
