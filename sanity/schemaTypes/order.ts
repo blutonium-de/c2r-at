@@ -70,6 +70,14 @@ export const order = defineType({
       title: "Zwischensumme",
       type: "number",
       validation: (Rule) => Rule.required().min(0),
+      description: "Effektiv berechnete Zwischensumme (brutto oder netto je nach UID-Prüfung).",
+    }),
+
+    defineField({
+      name: "subtotalGross",
+      title: "Zwischensumme brutto (Snapshot)",
+      type: "number",
+      validation: (Rule) => Rule.min(0),
     }),
 
     defineField({
@@ -77,6 +85,14 @@ export const order = defineType({
       title: "Versandkosten",
       type: "number",
       validation: (Rule) => Rule.required().min(0),
+      description: "Effektiv berechnete Versandkosten (brutto oder netto je nach UID-Prüfung).",
+    }),
+
+    defineField({
+      name: "shippingCostGross",
+      title: "Versandkosten brutto (Snapshot)",
+      type: "number",
+      validation: (Rule) => Rule.min(0),
     }),
 
     defineField({
@@ -84,15 +100,43 @@ export const order = defineType({
       title: "MwSt",
       type: "number",
       validation: (Rule) => Rule.required().min(0),
-      description: "Enthaltene MwSt. (Preise sind brutto / inkl. MwSt.)",
+      description: "Enthaltene MwSt. Bei innergemeinschaftlicher Lieferung = 0.",
+    }),
+
+    defineField({
+      name: "taxRateApplied",
+      title: "Angewendeter Steuersatz",
+      type: "number",
+      description: "z.B. 0.2 oder 0 bei innergemeinschaftlicher Lieferung.",
+    }),
+
+    defineField({
+      name: "reverseChargeApplied",
+      title: "Innergemeinschaftliche Lieferung / MwSt-frei",
+      type: "boolean",
+      initialValue: false,
+    }),
+
+    defineField({
+      name: "taxExemptReason",
+      title: "Grund für Steuerfreiheit",
+      type: "string",
+      description: "z.B. innergemeinschaftliche Lieferung – umsatzsteuerfrei.",
     }),
 
     defineField({
       name: "amountTotal",
       title: "Gesamtbetrag",
       type: "number",
-      description: "Gesamtbetrag in EUR (z.B. 199.90)",
+      description: "Effektiv berechneter Gesamtbetrag in EUR (brutto oder netto je nach UID-Prüfung).",
       validation: (Rule) => Rule.required().min(0),
+    }),
+
+    defineField({
+      name: "amountTotalGross",
+      title: "Gesamtbetrag brutto (Snapshot)",
+      type: "number",
+      validation: (Rule) => Rule.min(0),
     }),
 
     defineField({name: "customerName", title: "Kunde – Name", type: "string"}),
@@ -102,6 +146,37 @@ export const order = defineType({
     defineField({name: "isBusiness", title: "Firma", type: "boolean", initialValue: false}),
     defineField({name: "companyName", title: "Firma – Name", type: "string"}),
     defineField({name: "vatId", title: "UID / VAT ID", type: "string"}),
+
+    defineField({
+      name: "vatValidated",
+      title: "UID geprüft / gültig",
+      type: "boolean",
+      initialValue: false,
+    }),
+
+    defineField({
+      name: "vatValidationMessage",
+      title: "UID Prüf-Hinweis",
+      type: "string",
+    }),
+
+    defineField({
+      name: "vatValidatedAt",
+      title: "UID geprüft am",
+      type: "datetime",
+    }),
+
+    defineField({
+      name: "vatCompanyName",
+      title: "Firma laut VIES",
+      type: "string",
+    }),
+
+    defineField({
+      name: "vatCompanyAddress",
+      title: "Adresse laut VIES",
+      type: "text",
+    }),
 
     defineField({
       name: "shippingProfile",
@@ -129,7 +204,24 @@ export const order = defineType({
             defineField({name: "title", title: "Titel", type: "string", validation: (Rule) => Rule.required()}),
             defineField({name: "sku", title: "SKU", type: "string"}),
             defineField({name: "quantity", title: "Menge", type: "number", validation: (Rule) => Rule.required().min(1)}),
-            defineField({name: "unitPrice", title: "Stückpreis", type: "number", validation: (Rule) => Rule.required().min(0)}),
+            defineField({
+              name: "unitPrice",
+              title: "Stückpreis (effektiv)",
+              type: "number",
+              validation: (Rule) => Rule.required().min(0),
+            }),
+            defineField({
+              name: "unitPriceGross",
+              title: "Stückpreis brutto (Snapshot)",
+              type: "number",
+              validation: (Rule) => Rule.min(0),
+            }),
+            defineField({
+              name: "unitPriceNet",
+              title: "Stückpreis netto (Snapshot)",
+              type: "number",
+              validation: (Rule) => Rule.min(0),
+            }),
             defineField({
               name: "product",
               title: "Produkt (optional)",
@@ -221,14 +313,16 @@ export const order = defineType({
       email: "customerEmail",
       total: "amountTotal",
       orderNumber: "orderNumber",
+      reverseChargeApplied: "reverseChargeApplied",
     },
-    prepare({provider, status, email, total, orderNumber}) {
+    prepare({provider, status, email, total, orderNumber, reverseChargeApplied}) {
       const p = provider === "stripe" ? "Stripe" : provider === "paypal" ? "PayPal" : provider
       const st = status?.toUpperCase?.() ?? ""
       const sum = typeof total === "number" ? `${total} €` : ""
+      const rc = reverseChargeApplied ? "IGL MwSt-frei" : null
       return {
         title: orderNumber || email || "Bestellung",
-        subtitle: [p, st, sum].filter(Boolean).join(" · "),
+        subtitle: [p, st, sum, rc].filter(Boolean).join(" · "),
       }
     },
   },

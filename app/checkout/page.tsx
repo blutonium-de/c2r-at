@@ -23,7 +23,17 @@ type QuoteResponse =
       selectedShippingId: string | null
       shippingCost: number
       total: number
+      tax: number
+      vatRate: number
       deliveryHint?: string | null
+      reverseChargeApplied?: boolean
+      vatValidated?: boolean
+      vatValidationMessage?: string | null
+      vatCompanyName?: string | null
+      vatCompanyAddress?: string | null
+      subtotalGross?: number
+      shippingCostGross?: number
+      totalGross?: number
     }
   | {ok: false; error: string; details?: any}
 
@@ -31,7 +41,6 @@ function money(n: number) {
   return (Math.round(n * 100) / 100).toFixed(2)
 }
 
-// ✅ NEW: harte Kürzung + "…" (damit die Box rechts nie komisch breit wird)
 function short(s: string, n = 40) {
   const str = String(s ?? "")
   return str.length > n ? str.slice(0, n) + "…" : str
@@ -40,7 +49,6 @@ function short(s: string, n = 40) {
 export default function CheckoutPage() {
   const {items, subtotal} = useCart()
 
-  // ---- Form State
   const [email, setEmail] = useState("")
   const [fullName, setFullName] = useState("")
   const [phone, setPhone] = useState("")
@@ -49,7 +57,7 @@ export default function CheckoutPage() {
   const [line1, setLine1] = useState("")
   const [postalCode, setPostalCode] = useState("")
   const [city, setCity] = useState("")
-  const [country, setCountry] = useState("AT") // fürs Order-Objekt (Display)
+  const [country, setCountry] = useState("AT")
 
   const [billingSame, setBillingSame] = useState(true)
 
@@ -57,7 +65,6 @@ export default function CheckoutPage() {
   const [companyName, setCompanyName] = useState("")
   const [vatId, setVatId] = useState("")
 
-  // ---- Quote State
   const [quote, setQuote] = useState<QuoteResponse | null>(null)
   const [selectedShippingProfileId, setSelectedShippingProfileId] = useState<string>("")
   const [loadingQuote, setLoadingQuote] = useState(false)
@@ -67,7 +74,6 @@ export default function CheckoutPage() {
     return items.map((x: any) => ({productId: x.productId, qty: Number(x.qty) || 1}))
   }, [items])
 
-  // Quote laden, wenn Cart/Region ändert
   useEffect(() => {
     let cancelled = false
 
@@ -86,6 +92,11 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             action: "quote",
             region,
+            customer: {
+              isBusiness: isCompany,
+              companyName: isCompany ? companyName : null,
+              vatId: isCompany ? vatId : null,
+            },
             items: cartPayload,
           }),
         })
@@ -97,8 +108,6 @@ export default function CheckoutPage() {
 
         if (json && (json as any).ok) {
           const q = json as Extract<QuoteResponse, {ok: true}>
-
-          // ✅ only set default if nothing selected yet OR selected not available anymore
           const stillValid = q.shippingOptions.some((x) => x.id === selectedShippingProfileId)
           if (!selectedShippingProfileId || !stillValid) {
             setSelectedShippingProfileId(q.selectedShippingId ?? q.shippingOptions[0]?.id ?? "")
@@ -116,7 +125,7 @@ export default function CheckoutPage() {
       cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [region, cartPayload])
+  }, [region, cartPayload, isCompany, companyName, vatId])
 
   const shippingOptions = quote && quote.ok ? quote.shippingOptions : []
   const chosen = shippingOptions.find((x) => x.id === selectedShippingProfileId) || null
@@ -124,6 +133,15 @@ export default function CheckoutPage() {
   const calcSubtotal = quote && quote.ok ? quote.subtotal : subtotal
   const shippingCost = quote && quote.ok ? (chosen ? chosen.cost : quote.shippingCost) : 0
   const total = quote && quote.ok ? quote.total : calcSubtotal + shippingCost
+  const taxAmount = quote && quote.ok ? quote.tax : 0
+
+  const reverseChargeApplied = quote && quote.ok ? !!quote.reverseChargeApplied : false
+  const vatValidated = quote && quote.ok ? !!quote.vatValidated : false
+  const vatValidationMessage = quote && quote.ok ? quote.vatValidationMessage : null
+  const vatCompanyName = quote && quote.ok ? quote.vatCompanyName : null
+  const vatCompanyAddress = quote && quote.ok ? quote.vatCompanyAddress : null
+  const subtotalGross = quote && quote.ok ? quote.subtotalGross ?? calcSubtotal : calcSubtotal
+  const totalGross = quote && quote.ok ? quote.totalGross ?? total : total
 
   function validateCheckoutBasics() {
     if (!items.length) return "Warenkorb ist leer."
@@ -132,6 +150,7 @@ export default function CheckoutPage() {
     if (!line1.trim() || !postalCode.trim() || !city.trim()) return "Bitte Lieferadresse vollständig eingeben."
     if (!selectedShippingProfileId) return "Bitte Versand auswählen."
     if (isCompany && !companyName.trim()) return "Bitte Firmenname eingeben."
+    if (isCompany && region === "EU" && !vatId.trim()) return "Bitte UID / VAT ID eingeben."
     return null
   }
 
@@ -156,7 +175,7 @@ export default function CheckoutPage() {
             email,
             phone: phone || null,
             fullName,
-            isCompany,
+            isBusiness: isCompany,
             companyName: isCompany ? companyName : null,
             vatId: isCompany ? vatId : null,
           },
@@ -165,7 +184,7 @@ export default function CheckoutPage() {
             line1,
             postalCode,
             city,
-            country, // nur als Text (AT oder EU)
+            country,
           },
           items: cartPayload,
         }),
@@ -177,13 +196,11 @@ export default function CheckoutPage() {
         return
       }
 
-      // ✅ PayPal Redirect (approveUrl)
       if (provider === "paypal" && json?.approveUrl) {
         window.location.href = json.approveUrl
         return
       }
 
-      // ✅ Stripe Redirect (url)
       if (json?.url) {
         window.location.href = json.url
         return
@@ -331,7 +348,9 @@ export default function CheckoutPage() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <div className="text-lg font-semibold">Kauf als Firma (optional)</div>
-                    <div className="text-sm text-neutral-600">Preise sind immer inkl. MwSt. (UID-Prüfung später).</div>
+                    <div className="text-sm text-neutral-600">
+                      Preise sind standardmäßig inkl. MwSt. Bei gültiger EU-UID außerhalb AT wird automatisch netto gerechnet.
+                    </div>
                   </div>
 
                   <label className="inline-flex items-center gap-2 text-sm shrink-0">
@@ -360,16 +379,51 @@ export default function CheckoutPage() {
                     </div>
 
                     <div className="min-w-0">
-                      <label className="text-sm text-neutral-600">UID / VAT ID (optional)</label>
+                      <label className="text-sm text-neutral-600">
+                        UID / VAT ID {region === "EU" ? "*" : "(optional)"}
+                      </label>
                       <input
                         name="vatId"
                         autoComplete="off"
                         value={vatId}
-                        onChange={(e) => setVatId(e.target.value)}
+                        onChange={(e) => setVatId(e.target.value.toUpperCase().replace(/\s+/g, ""))}
                         className="mt-1 w-full min-w-0 rounded-2xl border border-neutral-200 px-4 py-3 outline-none focus:border-black"
                         type="text"
+                        placeholder={region === "EU" ? "z.B. DE123456789" : "z.B. DE123456789"}
                       />
                     </div>
+                  </div>
+                ) : null}
+
+                {isCompany && region === "EU" ? (
+                  <div
+                    className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${
+                      reverseChargeApplied
+                        ? "border-green-200 bg-green-50 text-green-800"
+                        : vatId.trim()
+                          ? vatValidated
+                            ? "border-green-200 bg-green-50 text-green-800"
+                            : "border-amber-200 bg-amber-50 text-amber-800"
+                          : "border-neutral-200 bg-neutral-50 text-neutral-700"
+                    }`}
+                  >
+                    {reverseChargeApplied ? (
+                      <div className="space-y-1">
+                        <div className="font-medium">UID erfolgreich geprüft – innergemeinschaftliche Lieferung</div>
+                        <div>Die Bestellung wird netto abgerechnet. MwSt. = 0,00 €.</div>
+                        {vatCompanyName ? <div>Firma laut VIES: {vatCompanyName}</div> : null}
+                        {vatCompanyAddress ? <div className="whitespace-pre-line">{vatCompanyAddress}</div> : null}
+                      </div>
+                    ) : vatId.trim() ? (
+                      <div className="space-y-1">
+                        <div className="font-medium">UID-Prüfung</div>
+                        <div>{vatValidationMessage || "UID wird geprüft oder ist nicht für Netto-Verkauf gültig."}</div>
+                      </div>
+                    ) : (
+                      <div>
+                        Für eine umsatzsteuerfreie innergemeinschaftliche Lieferung bitte eine gültige EU-UID eingeben.
+                      </div>
+                    )}
                   </div>
                 ) : null}
               </div>
@@ -417,7 +471,6 @@ export default function CheckoutPage() {
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        {/* ✅ FIX: echte Kürzung + Tooltip */}
                         <div className="text-sm font-medium truncate" title={x.title}>
                           {short(x.title, 40)}
                         </div>
@@ -435,10 +488,25 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="mt-6 border-t border-neutral-200 pt-5 space-y-3 min-w-0">
+                  {reverseChargeApplied ? (
+                    <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+                      Innergemeinschaftliche Lieferung – umsatzsteuerfrei.
+                    </div>
+                  ) : null}
+
                   <div className="flex items-center justify-between text-sm gap-3 min-w-0">
-                    <span className="text-neutral-600">Zwischensumme</span>
+                    <span className="text-neutral-600">
+                      {reverseChargeApplied ? "Zwischensumme netto" : "Zwischensumme"}
+                    </span>
                     <span className="font-semibold whitespace-nowrap shrink-0">{money(calcSubtotal)} €</span>
                   </div>
+
+                  {reverseChargeApplied ? (
+                    <div className="flex items-center justify-between text-sm gap-3 min-w-0">
+                      <span className="text-neutral-600">Zwischensumme brutto</span>
+                      <span className="whitespace-nowrap shrink-0">{money(subtotalGross)} €</span>
+                    </div>
+                  ) : null}
 
                   {/* Versand */}
                   <div className="rounded-2xl border border-neutral-200 p-4 min-w-0">
@@ -451,7 +519,9 @@ export default function CheckoutPage() {
 
                     {quote && quote.ok ? (
                       <>
-                        {quote.deliveryHint ? <div className="mt-2 text-xs text-neutral-500 break-words">{quote.deliveryHint}</div> : null}
+                        {quote.deliveryHint ? (
+                          <div className="mt-2 text-xs text-neutral-500 break-words">{quote.deliveryHint}</div>
+                        ) : null}
 
                         <div className="mt-3 space-y-2 min-w-0">
                           {shippingOptions.map((opt) => (
@@ -486,10 +556,22 @@ export default function CheckoutPage() {
                     ) : null}
                   </div>
 
+                  <div className="flex items-center justify-between text-sm gap-3 min-w-0">
+                    <span className="text-neutral-600">MwSt.</span>
+                    <span className="whitespace-nowrap shrink-0">{money(taxAmount)} €</span>
+                  </div>
+
                   <div className="flex items-center justify-between text-base gap-3 min-w-0">
-                    <span className="text-neutral-600">Gesamt</span>
+                    <span className="text-neutral-600">{reverseChargeApplied ? "Gesamt netto" : "Gesamt"}</span>
                     <span className="text-xl font-semibold whitespace-nowrap shrink-0">{money(total)} €</span>
                   </div>
+
+                  {reverseChargeApplied ? (
+                    <div className="flex items-center justify-between text-sm gap-3 min-w-0">
+                      <span className="text-neutral-600">Gesamt brutto</span>
+                      <span className="whitespace-nowrap shrink-0">{money(totalGross)} €</span>
+                    </div>
+                  ) : null}
 
                   <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button
@@ -523,7 +605,9 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="mt-2 text-[11px] text-neutral-500 break-words">
-                    Preise inkl. MwSt. Versand wird vor Zahlung angezeigt.
+                    {reverseChargeApplied
+                      ? "Innergemeinschaftliche Lieferung – umsatzsteuerfrei. Versand wird vor Zahlung angezeigt."
+                      : "Preise inkl. MwSt. Versand wird vor Zahlung angezeigt."}
                   </div>
 
                   <div className="mt-4">
