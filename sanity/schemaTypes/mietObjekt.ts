@@ -26,6 +26,13 @@ export const mietObjekt = defineType({
     }),
 
     defineField({
+      name: "highlightOrder",
+      title: "Highlight Sortierung (Miete Slider)",
+      type: "number",
+      description: "Kleinere Zahl = weiter vorne im Highlights-Slider. Nur setzen, wenn das Objekt oben promotet werden soll.",
+    }),
+
+    defineField({
       name: "name",
       title: "Name",
       type: "string",
@@ -118,7 +125,6 @@ export const mietObjekt = defineType({
       validation: (Rule) => Rule.required(),
     }),
 
-    // ✅ LEGACY-FELDER (nur zum “Unknown field” killen – NICHT verwenden)
     defineField({name: "preisModell", title: "Preis-Modell (alt)", type: "string", readOnly: true, hidden: true}),
     defineField({name: "preisModell1", title: "Preis-Modell (alt2)", type: "string", readOnly: true, hidden: true}),
     defineField({name: "pricingModell", title: "Preis-Modell (alt3)", type: "string", readOnly: true, hidden: true}),
@@ -169,7 +175,6 @@ export const mietObjekt = defineType({
       validation: (Rule) => Rule.min(1),
     }),
 
-    // ✅ Specials & Tarife (3 Tage / 7 Tage etc.)
     defineField({
       name: "tarife",
       title: "Specials & Tarife",
@@ -409,15 +414,17 @@ export const mietObjekt = defineType({
       perNight: "preisProNacht",
       saison: "saisonPreise",
       inWartung: "inWartung",
+      highlightOrder: "highlightOrder",
     },
-    prepare({title, media, model, perDay, perNight, saison, inWartung}) {
+    prepare({title, media, model, perDay, perNight, saison, inWartung, highlightOrder}) {
       const wartungLabel = inWartung ? " · WARTUNG" : ""
+      const highlightLabel = typeof highlightOrder === "number" ? ` · Highlight #${highlightOrder}` : ""
       let subtitle = "Preis auf Anfrage"
       if (model === "day" && typeof perDay === "number") subtitle = `${perDay} € / Tag`
       if (model === "night" && typeof perNight === "number") subtitle = `${perNight} € / Nacht`
       if (model === "seasonal" && Array.isArray(saison) && saison.length) subtitle = `Saisonpreise (${saison.length})`
 
-      return {title: (title ?? "Miet-Objekt") + wartungLabel, subtitle, media}
+      return {title: (title ?? "Miet-Objekt") + wartungLabel, subtitle: `${subtitle}${highlightLabel}`, media}
     },
   },
 })
