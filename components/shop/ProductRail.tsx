@@ -29,9 +29,13 @@ function getSlug(p: any) {
 export default function ProductRail({
   products,
   compact,
+  title,
+  viewAllHref,
 }: {
   products: RailProduct[]
   compact?: boolean
+  title?: string
+  viewAllHref?: string
 }) {
   const scrollerRef = useRef<HTMLDivElement | null>(null)
 
@@ -46,6 +50,17 @@ export default function ProductRail({
 
   return (
     <div className="relative">
+      {title ? (
+        <div className="flex items-center justify-between gap-4 mb-3">
+          <div className="text-base md:text-lg font-semibold tracking-tight">{title}</div>
+          {viewAllHref ? (
+            <Link href={viewAllHref} className="text-sm text-neutral-600 hover:text-black underline shrink-0">
+              Zum Shop
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="flex items-center justify-end gap-2 mb-3">
         <button
           type="button"
