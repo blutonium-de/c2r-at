@@ -64,7 +64,7 @@ export default function ProductRail({
         </div>
       ) : null}
 
-      <div className="flex items-center justify-end gap-2 mb-3">
+      <div className={`${compact ? "hidden md:flex" : "flex"} items-center justify-end gap-2 mb-3`}>
         <button
           type="button"
           onClick={() => scrollByAmount(-1)}
@@ -85,7 +85,7 @@ export default function ProductRail({
 
       <div
         ref={scrollerRef}
-        className="flex gap-3 overflow-x-auto pb-3 scroll-smooth pr-1"
+        className={`flex gap-3 overflow-x-auto ${compact ? "pb-2" : "pb-3"} scroll-smooth pr-1`}
         style={{scrollbarWidth: "thin"} as any}
       >
         {items.map((p: any) => {

@@ -87,15 +87,15 @@ export default async function ShopPage({searchParams}: {searchParams?: SearchPar
 
   return (
     <main className="min-h-screen bg-white text-black">
-      <header className="max-w-6xl mx-auto px-4 md:px-6 pt-10 md:pt-14 pb-6 md:pb-8">
-        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">Parts & Zubehör</h1>
+      <header className="max-w-6xl mx-auto px-4 md:px-6 pt-6 md:pt-14 pb-5 md:pb-8">
+        <h1 className="text-[22px] md:text-5xl font-semibold tracking-tight">Parts & Zubehör</h1>
 
-        <p className="mt-3 text-neutral-600 max-w-2xl">
+        <p className="hidden md:block mt-3 text-neutral-600 max-w-2xl">
           G-Klasse Ersatzteile (neu/gebraucht), Caravan Zubehör und ausgewählte Shop-Highlights.
         </p>
 
         {/* Suche – immer 1 Zeile */}
-        <form action="/shop" method="get" className="mt-6">
+        <form action="/shop" method="get" className="mt-5 md:mt-6">
           <div className="flex items-center gap-2">
             <input type="hidden" name="cat" value={cat} />
             <input
@@ -116,7 +116,7 @@ export default async function ShopPage({searchParams}: {searchParams?: SearchPar
 
         {/* Kategorien als Slider */}
         {Array.isArray(categories) && categories.length ? (
-          <div className="mt-6 overflow-x-auto pb-2">
+          <div className="mt-5 md:mt-6 overflow-x-auto pb-2">
             <div className="flex gap-2 min-w-max">
               <Link
                 href={q ? `/shop?q=${encodeURIComponent(q)}` : "/shop"}
@@ -175,6 +175,10 @@ export default async function ShopPage({searchParams}: {searchParams?: SearchPar
       {/* Highlights oben */}
       {Array.isArray(highlightItems) && highlightItems.length ? (
         <section className="max-w-6xl mx-auto px-4 md:px-6 pb-8">
+          <div className="md:hidden mb-3 text-sm text-neutral-600">
+            G-Klasse Ersatzteile (neu/gebraucht), Caravan Zubehör und ausgewählte Shop-Highlights.
+          </div>
+
           <ProductSlider
             title="Blutonium & c2r Shop Highlights"
             items={highlightItems}
