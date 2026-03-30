@@ -26,29 +26,43 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
     <html lang="de">
       <body className="bg-white text-black">
         <CartProvider>
-          <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white/80 backdrop-blur">
-            <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
-              <Link href="/" className="font-semibold tracking-tight">
-                c2r.at
-                <span className="ml-2 text-xs font-normal text-neutral-500">by Blutonium Cars</span>
-              </Link>
-
-              <nav className="flex items-center gap-5 text-sm leading-none">
-                {nav.map((x) => (
-                  <Link key={x.href} href={x.href} className="text-neutral-700 hover:text-black transition">
-                    {x.label}
-                  </Link>
-                ))}
-
-                {/* 🛒 Mini Cart Dropdown */}
-                <MiniCart />
-
-                <Link
-                  href="/anfrage"
-                  className="ml-2 inline-flex items-center rounded-full bg-black px-4 py-2 text-white text-sm hover:opacity-85 transition"
-                >
-                  Anfrage
+          <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 backdrop-blur">
+            <div className="mx-auto max-w-6xl px-4 md:px-6 py-3">
+              
+              {/* ZEILE 1: Branding + Actions */}
+              <div className="flex items-center justify-between">
+                <Link href="/" className="flex items-center gap-2 min-w-0">
+                  <span className="font-semibold tracking-tight whitespace-nowrap">c2r.at</span>
+                  <span className="text-[11px] text-neutral-500 whitespace-nowrap truncate">
+                    by Blutonium Cars
+                  </span>
                 </Link>
+
+                <div className="flex items-center gap-3">
+                  <MiniCart />
+
+                  <Link
+                    href="/anfrage"
+                    className="inline-flex items-center rounded-full bg-black px-4 py-2 text-white text-sm hover:opacity-85 transition"
+                  >
+                    Anfrage
+                  </Link>
+                </div>
+              </div>
+
+              {/* ZEILE 2: Navigation */}
+              <nav className="mt-3 overflow-x-auto">
+                <div className="flex gap-5 text-sm min-w-max">
+                  {nav.map((x) => (
+                    <Link
+                      key={x.href}
+                      href={x.href}
+                      className="text-neutral-700 hover:text-black transition whitespace-nowrap"
+                    >
+                      {x.label}
+                    </Link>
+                  ))}
+                </div>
               </nav>
             </div>
           </header>
@@ -64,32 +78,32 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
                 <div className="mt-2 text-sm text-neutral-600">Bahnhofstraße 27, 4650 Lambach (OÖ)</div>
               </div>
 
-<div className="text-sm">
-  <div className="font-medium">Rechtliches</div>
-  <div className="mt-3 flex flex-col gap-2 text-neutral-600">
-    <Link href="/impressum" className="hover:text-black">
-      Impressum
-    </Link>
-    <Link href="/datenschutz" className="hover:text-black">
-      Datenschutz
-    </Link>
-    <Link href="/agb" className="hover:text-black">
-      AGB Verkauf
-    </Link>
-    <Link href="/widerruf" className="hover:text-black">
-      Widerruf
-    </Link>
-    <Link href="/versand-zahlung" className="hover:text-black">
-      Versand & Zahlung
-    </Link>
-    <Link href="/agb-vermietung" className="hover:text-black">
-      AGB Vermietung
-    </Link>
-    <Link href="/haftungsausschluss" className="hover:text-black">
-  Haftungsausschluss (Einbau/Motorsport/CE)
-</Link>
-  </div>
-</div>
+              <div className="text-sm">
+                <div className="font-medium">Rechtliches</div>
+                <div className="mt-3 flex flex-col gap-2 text-neutral-600">
+                  <Link href="/impressum" className="hover:text-black">
+                    Impressum
+                  </Link>
+                  <Link href="/datenschutz" className="hover:text-black">
+                    Datenschutz
+                  </Link>
+                  <Link href="/agb" className="hover:text-black">
+                    AGB Verkauf
+                  </Link>
+                  <Link href="/widerruf" className="hover:text-black">
+                    Widerruf
+                  </Link>
+                  <Link href="/versand-zahlung" className="hover:text-black">
+                    Versand & Zahlung
+                  </Link>
+                  <Link href="/agb-vermietung" className="hover:text-black">
+                    AGB Vermietung
+                  </Link>
+                  <Link href="/haftungsausschluss" className="hover:text-black">
+                    Haftungsausschluss (Einbau/Motorsport/CE)
+                  </Link>
+                </div>
+              </div>
 
               <div className="text-sm">
                 <div className="font-medium">Kontakt</div>
@@ -106,6 +120,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
               </div>
             </div>
           </footer>
+
           <CookieBanner />
         </CartProvider>
       </body>
