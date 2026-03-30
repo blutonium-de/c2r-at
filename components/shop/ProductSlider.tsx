@@ -13,21 +13,19 @@ export default function ProductSlider({
   viewAllHref?: string
 }) {
   return (
-    <section className="max-w-6xl mx-auto px-6">
+    <section>
       <div className="flex items-center justify-between gap-4">
-        <div className="text-sm font-semibold">{title}</div>
+        <div className="text-base md:text-lg font-semibold tracking-tight">{title}</div>
 
         {viewAllHref ? (
-          <Link href={viewAllHref} className="text-sm text-neutral-600 hover:text-black underline">
+          <Link href={viewAllHref} className="text-sm text-neutral-600 hover:text-black underline shrink-0">
             Alle ansehen
           </Link>
-        ) : (
-          <span />
-        )}
+        ) : null}
       </div>
 
-      <div className="mt-3">
-        <ProductRail products={items} />
+      <div className="mt-4">
+        <ProductRail products={items} compact />
       </div>
     </section>
   )

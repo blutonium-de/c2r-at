@@ -35,11 +35,9 @@ export const schemaTypes = [
   rentalRate,
   rentalInquiry,
 
-  // ✅ Anti-Spam/Rate-Limit helper docs (für Anfrage-Blocker)
   rentalInquiryLock,
   rentalInquiryRate,
 
-  // ✅ WEBSITE SETTINGS + ORDERS
   siteSettings,
   order,
 
@@ -70,6 +68,14 @@ export const schemaTypes = [
       {name: "media", title: "Bilder & Beschreibung"},
     ],
     fields: [
+      defineField({
+        name: "highlightOrder",
+        title: "Highlight Sortierung (Shop Slider)",
+        type: "number",
+        fieldset: "basis",
+        description: "Kleinere Zahl = weiter vorne im Highlights-Slider. Nur setzen, wenn das Produkt oben promotet werden soll.",
+      }),
+
       defineField({
         name: "title",
         title: "Name",
@@ -117,7 +123,6 @@ export const schemaTypes = [
         },
       }),
 
-      // ✅ Lieferzeit (optional)
       defineField({
         name: "deliveryTimeLabel",
         title: "Lieferzeit Text (optional)",
@@ -126,7 +131,6 @@ export const schemaTypes = [
         description: 'z.B. "2–3 Werktage", "10–14 Tage", "1–2 Monate (China Lager)".',
       }),
 
-      // ✅ Versand Hinweis (optional)
       defineField({
         name: "shippingNote",
         title: "Versand Hinweis (optional)",
@@ -195,11 +199,18 @@ export const schemaTypes = [
     ],
 
     preview: {
-      select: {title: "title", media: "images.0", price: "price", deliveryTimeLabel: "deliveryTimeLabel"},
-      prepare({title, media, price, deliveryTimeLabel}) {
-        const p = price ? `${price} €` : ""
+      select: {
+        title: "title",
+        media: "images.0",
+        price: "price",
+        deliveryTimeLabel: "deliveryTimeLabel",
+        highlightOrder: "highlightOrder",
+      },
+      prepare({title, media, price, deliveryTimeLabel, highlightOrder}) {
+        const p = typeof price === "number" ? `${price} €` : ""
         const d = deliveryTimeLabel ? ` · ${deliveryTimeLabel}` : ""
-        return {title, subtitle: `${p}${d}`, media}
+        const h = typeof highlightOrder === "number" ? ` · Highlight #${highlightOrder}` : ""
+        return {title, subtitle: `${p}${d}${h}`, media}
       },
     },
   }),
