@@ -6,12 +6,6 @@ import {getTransport} from "@/lib/mailer"
 
 export const runtime = "nodejs"
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}
-
 function toMoneyFromCents(cents: any) {
   const n = typeof cents === "number" ? cents : Number(cents)
   if (!Number.isFinite(n)) return null
@@ -171,9 +165,7 @@ export async function POST(req: Request) {
     if (!webhookSecret) return NextResponse.json({error: "STRIPE_WEBHOOK_SECRET fehlt"}, {status: 500})
     if (!writeToken) return NextResponse.json({error: "SANITY_API_WRITE_TOKEN fehlt"}, {status: 500})
 
-    const stripe = new Stripe(stripeSecret as string, {
-      apiVersion: "2023-10-16",
-    })
+    const stripe = new Stripe(stripeSecret as string)
 
     const sig = req.headers.get("stripe-signature")
     if (!sig) return NextResponse.json({error: "Missing stripe-signature"}, {status: 400})
@@ -184,11 +176,8 @@ export async function POST(req: Request) {
     try {
       event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret)
     } catch (err: any) {
-      console.error("❌ Invalid signature:", err.message)
-      return NextResponse.json({error: "Invalid signature"}, {status: 400})
+      return NextResponse.json({error: "Invalid signature", details: err?.message ?? String(err)}, {status: 400})
     }
-
-    console.log("✅ Stripe Event:", event.type)
 
     const writeClient = createClient({
       projectId,
@@ -200,12 +189,6 @@ export async function POST(req: Request) {
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session
-
-      if (session.payment_status !== "paid") {
-        console.log("⚠️ Not paid yet")
-        return NextResponse.json({ok: true})
-      }
-
       const orderId = (session?.metadata as any)?.orderId as string | undefined
 
       if (!orderId) {
