@@ -157,8 +157,8 @@ export default function ProductRail({
                   </div>
 
                   <div
-                    className={`mt-2 font-medium leading-snug line-clamp-2 min-h-[2.6rem] ${
-                      compact ? "text-[12px]" : "text-sm"
+                    className={`mt-2 font-medium leading-snug line-clamp-3 ${
+                      compact ? "text-[12px] min-h-[3.6rem]" : "text-sm min-h-[4.25rem]"
                     }`}
                   >
                     {p?.title ?? "Produkt"}
