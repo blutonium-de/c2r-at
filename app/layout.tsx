@@ -18,6 +18,7 @@ export const viewport = {
 const nav = [
   {href: "/miete", label: "Miete"},
   {href: "/shop", label: "Shop"},
+  {href: "/gebrauchte-fahrzeuge", label: "Gebrauchte Fahrzeuge"},
   {href: "/kontakt", label: "Kontakt"},
 ]
 
