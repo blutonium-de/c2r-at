@@ -34,6 +34,11 @@ export const structure: StructureResolver = (S) =>
         .icon(DocumentIcon)
         .child(S.documentTypeList("rentalInquiry").title("Anfragen (Miete)")),
 
+      S.listItem()
+        .title("Optionen / Ausstattungspakete")
+        .icon(PackageIcon)
+        .child(S.documentTypeList("optionPackage").title("Optionen / Ausstattungspakete")),
+
       S.divider(),
 
       S.listItem()
@@ -57,7 +62,6 @@ export const structure: StructureResolver = (S) =>
         .icon(PackageIcon)
         .child(S.documentTypeList("product").title("Produkte")),
 
-      // ✅ HIER FEHLTE ES
       S.listItem()
         .title("Gebrauchte Fahrzeuge")
         .icon(PackageIcon)

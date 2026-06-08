@@ -357,6 +357,102 @@ export const schemaTypes = [
   }),
 
   // =========================
+  // OPTIONEN / AUSSTATTUNGSPAKETE
+  // =========================
+  defineType({
+    name: "optionPackage",
+    title: "Optionen / Ausstattungspakete",
+    type: "document",
+
+    fields: [
+      defineField({
+        name: "sortOrder",
+        title: "Sortierung",
+        type: "number",
+        description: "Kleinere Zahl = weiter oben",
+      }),
+
+      defineField({
+        name: "title",
+        title: "Titel",
+        type: "string",
+        validation: (Rule) => Rule.required(),
+      }),
+
+      defineField({
+        name: "subtitle",
+        title: "Paket-Typ / Untertitel",
+        type: "string",
+        description: 'z.B. "Grundausstattung", "Zusatzpaket", "Kombipaket", "Gesamtpaket"',
+      }),
+
+      defineField({
+        name: "price",
+        title: "Preis Text",
+        type: "string",
+        description: 'z.B. "€ 0,-*", "€ 70,-*", "Preis nach tatsächlichem Aufwand"',
+      }),
+
+      defineField({
+        name: "priceNote",
+        title: "Preis Hinweis",
+        type: "string",
+        description: 'z.B. "im Preis enthalten", "Einmalige Pauschale"',
+      }),
+
+      defineField({
+        name: "image",
+        title: "Bild",
+        type: "image",
+        options: {hotspot: true},
+      }),
+
+      defineField({
+        name: "intro",
+        title: "Kurzbeschreibung",
+        type: "text",
+      }),
+
+      defineField({
+        name: "features",
+        title: "Leistungsumfang",
+        type: "array",
+        of: [{type: "string"}],
+      }),
+
+      defineField({
+        name: "buttonText",
+        title: "Button Text",
+        type: "string",
+        initialValue: "Jetzt anfragen",
+      }),
+
+      defineField({
+        name: "isActive",
+        title: "Aktiv",
+        type: "boolean",
+        initialValue: true,
+      }),
+    ],
+
+    preview: {
+      select: {
+        title: "title",
+        media: "image",
+        subtitle: "price",
+      },
+
+      prepare({title, media, subtitle}) {
+        return {
+          title,
+          media,
+          subtitle,
+        }
+      },
+    },
+  }),
+
+  // =========================
   // SEITE
   // =========================
   defineType({
