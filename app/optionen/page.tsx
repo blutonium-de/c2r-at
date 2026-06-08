@@ -77,16 +77,22 @@ export default async function OptionenPage() {
                 {item.subtitle}
               </div>
 
-              <h2 className="mt-2 text-xl font-semibold">{item.title}</h2>
+              <h2 className="mt-2 text-xl font-semibold">
+                {item.title}
+              </h2>
 
-              <div className="mt-3 text-3xl font-bold">{item.price}</div>
+              <div className="mt-3 text-3xl font-bold">
+                {item.price}
+              </div>
 
               {item.priceNote ? (
-                <div className="mt-1 text-sm opacity-80">{item.priceNote}</div>
+                <div className="mt-1 text-sm opacity-80">
+                  {item.priceNote}
+                </div>
               ) : null}
             </div>
 
-            <div className="flex flex-1 flex-col p-5">
+            <div className="flex flex-1 flex-col p-5 gap-6">
               {item.intro ? (
                 <div className="text-sm text-neutral-700 leading-relaxed whitespace-pre-line">
                   {item.intro}
@@ -94,7 +100,7 @@ export default async function OptionenPage() {
               ) : null}
 
               {Array.isArray(item.features) && item.features.length ? (
-                <ul className="mt-5 space-y-2 text-sm">
+                <ul className="space-y-2 text-sm">
                   {item.features.map((f: string) => (
                     <li key={f} className="flex gap-2">
                       <span className="mt-[1px]">✓</span>
