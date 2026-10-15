@@ -208,8 +208,8 @@ export default async function ShopPage({searchParams}: {searchParams?: SearchPar
           )}
         </section>
       ) : (
-      {/* Produktliste */}
-      <section className="max-w-6xl mx-auto px-4 md:px-6 pb-16 grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        ) : (
+          <section className="max-w-6xl mx-auto px-4 md:px-6 pb-16 grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {Array.isArray(items) && items.length ? (
           items.map((p: any) => {
             const href = p?.slug ? `/shop/${encodeURIComponent(p.slug)}` : "/shop"
