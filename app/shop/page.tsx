@@ -208,7 +208,6 @@ export default async function ShopPage({searchParams}: {searchParams?: SearchPar
           )}
         </section>
       ) : (
-        ) : (
           <section className="max-w-6xl mx-auto px-4 md:px-6 pb-16 grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {Array.isArray(items) && items.length ? (
           items.map((p: any) => {
