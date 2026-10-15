@@ -73,7 +73,7 @@ export const schemaTypes = [
         return {
           title,
           media,
-          subtitle: `${typeof sortOrder === "number" ? `Position ${sortOrder}` : "Keine Sortierung"} · ${isActive === false ? "Inaktiv" : "Aktiv"}`,
+          subtitle: \`${typeof sortOrder === "number" ? \`Position ${sortOrder}\` : "Keine Sortierung"} · ${isActive === false ? "Inaktiv" : "Aktiv"}\`,
         }
       },
     },
@@ -121,12 +121,23 @@ export const schemaTypes = [
         fieldset: "basis",
         validation: (Rule) => Rule.required(),
       }),
+
       defineField({
         name: "category",
-        title: "Kategorie",
+        title: "Bisherige Kategorie",
         type: "reference",
         fieldset: "basis",
         to: [{type: "shopCategory"}],
+        description: "Bestehende Kategoriezuordnung. Bleibt für ältere Produkte erhalten.",
+      }),
+      defineField({
+        name: "categories",
+        title: "Zusätzliche Kategorien (Mehrfachauswahl)",
+        type: "array",
+        fieldset: "basis",
+        of: [{type: "reference", to: [{type: "shopCategory"}]}],
+        validation: (Rule) => Rule.unique(),
+        description: "Produkt zusätzlich in mehreren Shop-Kategorien anzeigen lassen.",
       }),
       defineField({
         name: "condition",
@@ -218,15 +229,15 @@ export const schemaTypes = [
         highlightOrder: "highlightOrder",
       },
       prepare({title, media, price, deliveryTimeLabel, highlightOrder}) {
-        const p = typeof price === "number" ? `${price} €` : ""
-        const d = deliveryTimeLabel ? ` · ${deliveryTimeLabel}` : ""
+        const p = typeof price === "number" ? \`${price} €\` : ""
+        const d = deliveryTimeLabel ? \` · ${deliveryTimeLabel}\` : ""
         const h =
           typeof highlightOrder === "number"
-            ? ` · Highlight #${highlightOrder}`
+            ? \` · Highlight #${highlightOrder}\`
             : ""
         return {
           title,
-          subtitle: `${p}${d}${h}`,
+          subtitle: \`${p}${d}${h}\`,
           media,
         }
       },
@@ -334,7 +345,7 @@ export const schemaTypes = [
           title,
           media,
           subtitle: [
-            typeof price === "number" ? `${price} €` : "",
+            typeof price === "number" ? \`${price} €\` : "",
             sold ? "VERKAUFT" : "",
           ]
             .filter(Boolean)
@@ -373,7 +384,7 @@ export const schemaTypes = [
         name: "price",
         title: "Preis Text",
         type: "string",
-        description: 'z.B. "€ 0,-*", "€ 70,-*", "Preis nach tatsächlichem Aufwand"',
+        description: 'z.B. "€ 0,-\*", "€ 70,-\*", "Preis nach tatsächlichem Aufwand"',
       }),
       defineField({
         name: "priceNote",
