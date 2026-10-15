@@ -9,7 +9,6 @@ import {rentalInquiryLock} from "./rentalInquiryLock"
 import {rentalInquiryRate} from "./rentalInquiryRate"
 import {siteSettings} from "./siteSettings"
 import {order} from "./order"
-
 export const schemaTypes = [
   // =========================
   // MIETE-KATEGORIE
@@ -24,7 +23,6 @@ export const schemaTypes = [
       defineField({name: "isActive", title: "Aktiv", type: "boolean", initialValue: true}),
     ],
   }),
-
   // =========================
   // MIET-OBJEKT / VARIANTEN / VERSAND / BUCHUNGEN / TARIFE / ANFRAGEN
   // =========================
@@ -34,13 +32,10 @@ export const schemaTypes = [
   rentalBooking,
   rentalRate,
   rentalInquiry,
-
   rentalInquiryLock,
   rentalInquiryRate,
-
   siteSettings,
   order,
-
   // =========================
   // SHOP-KATEGORIE
   // =========================
@@ -51,10 +46,38 @@ export const schemaTypes = [
     fields: [
       defineField({name: "title", title: "Titel", type: "string"}),
       defineField({name: "slug", title: "Slug", type: "slug", options: {source: "title"}}),
+      defineField({
+        name: "sortOrder",
+        title: "Sortierung (1–40)",
+        type: "number",
+        description: "Kleinere Zahl = weiter vorne auf der Shop-Hauptseite.",
+        validation: (Rule) => Rule.integer().min(1).max(40),
+      }),
+      defineField({
+        name: "image",
+        title: "Kategoriebild",
+        type: "image",
+        options: {hotspot: true},
+      }),
+      defineField({
+        name: "description",
+        title: "Kurzbeschreibung",
+        type: "text",
+        rows: 3,
+      }),
       defineField({name: "isActive", title: "Aktiv", type: "boolean", initialValue: true}),
     ],
+    preview: {
+      select: {title: "title", media: "image", sortOrder: "sortOrder", isActive: "isActive"},
+      prepare({title, media, sortOrder, isActive}) {
+        return {
+          title,
+          media,
+          subtitle: `${typeof sortOrder === "number" ? `Position ${sortOrder}` : "Keine Sortierung"} · ${isActive === false ? "Inaktiv" : "Aktiv"}`,
+        }
+      },
+    },
   }),
-
   // =========================
   // PRODUKT
   // =========================
@@ -62,13 +85,11 @@ export const schemaTypes = [
     name: "product",
     title: "Produkt",
     type: "document",
-
     fieldsets: [
       {name: "basis", title: "Basis"},
       {name: "preise", title: "Preise & Lager"},
       {name: "media", title: "Bilder & Beschreibung"},
     ],
-
     fields: [
       defineField({
         name: "highlightOrder",
@@ -78,7 +99,6 @@ export const schemaTypes = [
         description:
           "Kleinere Zahl = weiter vorne im Highlights-Slider. Nur setzen, wenn das Produkt oben promotet werden soll.",
       }),
-
       defineField({
         name: "title",
         title: "Name",
@@ -86,7 +106,6 @@ export const schemaTypes = [
         fieldset: "basis",
         validation: (Rule) => Rule.required(),
       }),
-
       defineField({
         name: "slug",
         title: "Slug",
@@ -95,7 +114,6 @@ export const schemaTypes = [
         options: {source: "title"},
         validation: (Rule) => Rule.required(),
       }),
-
       defineField({
         name: "sku",
         title: "Artikelnummer (SKU)",
@@ -103,7 +121,6 @@ export const schemaTypes = [
         fieldset: "basis",
         validation: (Rule) => Rule.required(),
       }),
-
       defineField({
         name: "category",
         title: "Kategorie",
@@ -111,7 +128,6 @@ export const schemaTypes = [
         fieldset: "basis",
         to: [{type: "shopCategory"}],
       }),
-
       defineField({
         name: "condition",
         title: "Zustand",
@@ -125,7 +141,6 @@ export const schemaTypes = [
           layout: "radio",
         },
       }),
-
       defineField({
         name: "deliveryTimeLabel",
         title: "Lieferzeit Text (optional)",
@@ -133,7 +148,6 @@ export const schemaTypes = [
         fieldset: "basis",
         description: 'z.B. "2–3 Werktage", "10–14 Tage", "1–2 Monate (China Lager)".',
       }),
-
       defineField({
         name: "shippingNote",
         title: "Versand Hinweis (optional)",
@@ -141,7 +155,6 @@ export const schemaTypes = [
         fieldset: "basis",
         description: 'z.B. "Versand aus China Lager", "Abholung möglich", etc.',
       }),
-
       defineField({
         name: "price",
         title: "Preis (€)",
@@ -149,7 +162,6 @@ export const schemaTypes = [
         fieldset: "preise",
         validation: (Rule) => Rule.required().min(0),
       }),
-
       defineField({
         name: "stock",
         title: "Lagerbestand",
@@ -159,7 +171,6 @@ export const schemaTypes = [
           "Nur für Produkte ohne Varianten. Bei Varianten bitte den Bestand in den Varianten pflegen.",
         validation: (Rule) => Rule.min(0),
       }),
-
       defineField({
         name: "variants",
         title: "Varianten",
@@ -168,7 +179,6 @@ export const schemaTypes = [
         of: [{type: "productVariant"}],
         description: "z.B. Größe/Farbe. Wenn du keine Varianten brauchst: leer lassen.",
       }),
-
       defineField({
         name: "shippingProfiles",
         title: "Versandprofile (AT / EU)",
@@ -178,7 +188,6 @@ export const schemaTypes = [
         description:
           "Wähle die Versandprofile, die für dieses Produkt erlaubt sind. Leer = kein Versand.",
       }),
-
       defineField({
         name: "images",
         title: "Produktbilder",
@@ -187,14 +196,12 @@ export const schemaTypes = [
         of: [{type: "image", options: {hotspot: true}}],
         validation: (Rule) => Rule.min(1),
       }),
-
       defineField({
         name: "description",
         title: "Beschreibung",
         type: "text",
         fieldset: "media",
       }),
-
       defineField({
         name: "isActive",
         title: "Aktiv",
@@ -202,7 +209,6 @@ export const schemaTypes = [
         initialValue: true,
       }),
     ],
-
     preview: {
       select: {
         title: "title",
@@ -211,7 +217,6 @@ export const schemaTypes = [
         deliveryTimeLabel: "deliveryTimeLabel",
         highlightOrder: "highlightOrder",
       },
-
       prepare({title, media, price, deliveryTimeLabel, highlightOrder}) {
         const p = typeof price === "number" ? `${price} €` : ""
         const d = deliveryTimeLabel ? ` · ${deliveryTimeLabel}` : ""
@@ -219,7 +224,6 @@ export const schemaTypes = [
           typeof highlightOrder === "number"
             ? ` · Highlight #${highlightOrder}`
             : ""
-
         return {
           title,
           subtitle: `${p}${d}${h}`,
@@ -228,7 +232,6 @@ export const schemaTypes = [
       },
     },
   }),
-
   // =========================
   // GEBRAUCHTE FAHRZEUGE
   // =========================
@@ -236,7 +239,6 @@ export const schemaTypes = [
     name: "usedVehicle",
     title: "Gebrauchte Fahrzeuge",
     type: "document",
-
     fields: [
       defineField({
         name: "sortOrder",
@@ -244,14 +246,12 @@ export const schemaTypes = [
         type: "number",
         description: "Kleinere Zahl = weiter oben",
       }),
-
       defineField({
         name: "title",
         title: "Titel",
         type: "string",
         validation: (Rule) => Rule.required(),
       }),
-
       defineField({
         name: "platform",
         title: "Plattform",
@@ -266,50 +266,42 @@ export const schemaTypes = [
         },
         initialValue: "willhaben",
       }),
-
       defineField({
         name: "externalUrl",
         title: "Inserat Link",
         type: "url",
         validation: (Rule) => Rule.required(),
       }),
-
       defineField({
         name: "price",
         title: "Preis (€)",
         type: "number",
       }),
-
       defineField({
         name: "mileage",
         title: "Kilometerstand",
         type: "string",
       }),
-
       defineField({
         name: "firstRegistration",
         title: "Erstzulassung",
         type: "string",
       }),
-
       defineField({
         name: "power",
         title: "Leistung",
         type: "string",
       }),
-
       defineField({
         name: "fuel",
         title: "Treibstoff",
         type: "string",
       }),
-
       defineField({
         name: "gearbox",
         title: "Getriebe",
         type: "string",
       }),
-
       defineField({
         name: "image",
         title: "Bild",
@@ -317,14 +309,12 @@ export const schemaTypes = [
         options: {hotspot: true},
         validation: (Rule) => Rule.required(),
       }),
-
       defineField({
         name: "isSold",
         title: "Verkauft",
         type: "boolean",
         initialValue: false,
       }),
-
       defineField({
         name: "isActive",
         title: "Aktiv",
@@ -332,7 +322,6 @@ export const schemaTypes = [
         initialValue: true,
       }),
     ],
-
     preview: {
       select: {
         title: "title",
@@ -340,7 +329,6 @@ export const schemaTypes = [
         price: "price",
         sold: "isSold",
       },
-
       prepare({title, media, price, sold}) {
         return {
           title,
@@ -355,7 +343,6 @@ export const schemaTypes = [
       },
     },
   }),
-
   // =========================
   // OPTIONEN / AUSSTATTUNGSPAKETE
   // =========================
@@ -363,7 +350,6 @@ export const schemaTypes = [
     name: "optionPackage",
     title: "Optionen / Ausstattungspakete",
     type: "document",
-
     fields: [
       defineField({
         name: "sortOrder",
@@ -371,62 +357,53 @@ export const schemaTypes = [
         type: "number",
         description: "Kleinere Zahl = weiter oben",
       }),
-
       defineField({
         name: "title",
         title: "Titel",
         type: "string",
         validation: (Rule) => Rule.required(),
       }),
-
       defineField({
         name: "subtitle",
         title: "Paket-Typ / Untertitel",
         type: "string",
         description: 'z.B. "Grundausstattung", "Zusatzpaket", "Kombipaket", "Gesamtpaket"',
       }),
-
       defineField({
         name: "price",
         title: "Preis Text",
         type: "string",
         description: 'z.B. "€ 0,-*", "€ 70,-*", "Preis nach tatsächlichem Aufwand"',
       }),
-
       defineField({
         name: "priceNote",
         title: "Preis Hinweis",
         type: "string",
         description: 'z.B. "im Preis enthalten", "Einmalige Pauschale"',
       }),
-
       defineField({
         name: "image",
         title: "Bild",
         type: "image",
         options: {hotspot: true},
       }),
-
       defineField({
         name: "intro",
         title: "Kurzbeschreibung",
         type: "text",
       }),
-
       defineField({
         name: "features",
         title: "Leistungsumfang",
         type: "array",
         of: [{type: "string"}],
       }),
-
       defineField({
         name: "buttonText",
         title: "Button Text",
         type: "string",
         initialValue: "Jetzt anfragen",
       }),
-
       defineField({
         name: "isActive",
         title: "Aktiv",
@@ -434,14 +411,12 @@ export const schemaTypes = [
         initialValue: true,
       }),
     ],
-
     preview: {
       select: {
         title: "title",
         media: "image",
         subtitle: "price",
       },
-
       prepare({title, media, subtitle}) {
         return {
           title,
@@ -451,7 +426,6 @@ export const schemaTypes = [
       },
     },
   }),
-
   // =========================
   // SEITE
   // =========================
@@ -459,24 +433,20 @@ export const schemaTypes = [
     name: "page",
     title: "Seite",
     type: "document",
-
     fields: [
       defineField({name: "title", title: "Titel", type: "string"}),
-
       defineField({
         name: "slug",
         title: "Slug",
         type: "slug",
         options: {source: "title"},
       }),
-
       defineField({
         name: "content",
         title: "Inhalt",
         type: "array",
         of: [{type: "block"}],
       }),
-
       defineField({
         name: "isActive",
         title: "Aktiv",
