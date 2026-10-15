@@ -73,7 +73,7 @@ export const schemaTypes = [
         return {
           title,
           media,
-          subtitle: \`${typeof sortOrder === "number" ? \`Position ${sortOrder}\` : "Keine Sortierung"} · ${isActive === false ? "Inaktiv" : "Aktiv"}\`,
+          subtitle: `${typeof sortOrder === "number" ? `Position ${sortOrder}` : "Keine Sortierung"} · ${isActive === false ? "Inaktiv" : "Aktiv"}`,
         }
       },
     },
@@ -229,18 +229,19 @@ export const schemaTypes = [
         highlightOrder: "highlightOrder",
       },
       prepare({title, media, price, deliveryTimeLabel, highlightOrder}) {
-        const p = typeof price === "number" ? \`${price} €\` : ""
-        const d = deliveryTimeLabel ? \` · ${deliveryTimeLabel}\` : ""
-        const h =
-          typeof highlightOrder === "number"
-            ? \` · Highlight #${highlightOrder}\`
-            : ""
-        return {
-          title,
-          subtitle: \`${p}${d}${h}\`,
-          media,
-        }
-      },
+      const p = typeof price === "number" ? `${price} €` : ""
+      const d = deliveryTimeLabel ? ` · ${deliveryTimeLabel}` : ""
+      const h =
+        typeof highlightOrder === "number"
+          ? ` · Highlight #${highlightOrder}`
+          : ""
+
+      return {
+        title,
+        subtitle: `${p}${d}${h}`,
+        media,
+      }
+    },
     },
   }),
   // =========================
@@ -341,17 +342,17 @@ export const schemaTypes = [
         sold: "isSold",
       },
       prepare({title, media, price, sold}) {
-        return {
-          title,
-          media,
-          subtitle: [
-            typeof price === "number" ? \`${price} €\` : "",
-            sold ? "VERKAUFT" : "",
-          ]
-            .filter(Boolean)
-            .join(" · "),
-        }
-      },
+      return {
+        title,
+        media,
+        subtitle: [
+          typeof price === "number" ? `${price} €` : "",
+          sold ? "VERKAUFT" : "",
+        ]
+          .filter(Boolean)
+          .join(" · "),
+      }
+    },
     },
   }),
   // =========================
