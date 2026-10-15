@@ -9,6 +9,7 @@ import {rentalInquiryLock} from "./rentalInquiryLock"
 import {rentalInquiryRate} from "./rentalInquiryRate"
 import {siteSettings} from "./siteSettings"
 import {order} from "./order"
+import {MultiImageUpload} from "../components/MultiImageUpload"
 export const schemaTypes = [
   // =========================
   // MIETE-KATEGORIE
@@ -200,13 +201,16 @@ export const schemaTypes = [
           "Wähle die Versandprofile, die für dieses Produkt erlaubt sind. Leer = kein Versand.",
       }),
       defineField({
-        name: "images",
-        title: "Produktbilder",
-        type: "array",
-        fieldset: "media",
-        of: [{type: "image", options: {hotspot: true}}],
-        validation: (Rule) => Rule.min(1),
-      }),
+  name: "images",
+  title: "Produktbilder",
+  type: "array",
+  fieldset: "media",
+  of: [{type: "image", options: {hotspot: true}}],
+  validation: (Rule) => Rule.min(1),
+  components: {
+    input: MultiImageUpload,
+  },
+}),
       defineField({
         name: "description",
         title: "Beschreibung",
